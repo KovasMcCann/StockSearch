@@ -13,7 +13,6 @@
 - **How to** submit stock market transactions
 - **How to** use AI and given data to turn profit  
     
-### Machine Learning Notes:
 </div>
 <div style="float: right; width: 50%;">
 
