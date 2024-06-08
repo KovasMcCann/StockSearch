@@ -1,10 +1,12 @@
 # StockSearch 📈
 
-<div>
-<div style="float: left; width: 50%;">
-    
+
+## Basic Links
+
+[Edgar](https://sec.gov) 
+
 ### TODO 📋
-- Find place to get live market data 
+- **Find** place to get live market data 
   - factset
   - Bloomberg Terminal
   - Thomson Reuters Eikon
@@ -12,10 +14,8 @@
 - **How to** use PYTorch (API)
 - **How to** submit stock market transactions
 - **How to** use AI and given data to turn profit  
-    
-</div>
-<div style="float: right; width: 50%;">
 
+## 
                       _..__
                     .' I   '.
                     |.-"""-.|
@@ -60,6 +60,3 @@
            .` "-. `%   | |    %` .-" `.
           /      \    .: :.     /      \
           '-..___|_..=:` `-:=.._|___..-'
-          
-</div>
-</div>
