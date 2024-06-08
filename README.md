@@ -1,9 +1,9 @@
-# StockSearch
+# StockSearch 📈
 
 <div>
 <div style="float: left; width: 50%;">
     
-### TODO:
+### TODO 📋
 - Find place to get live market data 
   - factset
   - Bloomberg Terminal
