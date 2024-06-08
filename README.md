@@ -1,11 +1,22 @@
 # StockSearch
-<<<<<<< HEAD
-SEC scanner
 
-
+<div>
+<div style="float: left; width: 50%;">
+    
+### TODO:
+- Find place to get live market data 
+  - factset
+  - Bloomberg Terminal
+  - Thomson Reuters Eikon
+- **How to** implement sec and edgar to provide meaningful data
+- **How to** use PYTorch (API)
+- **How to** submit stock market transactions
+- **How to** use AI and given data to turn profit  
+    
 ### Machine Learning Notes:
-=======
-### SEC scanner
+</div>
+<div style="float: right; width: 50%;">
+
                       _..__
                     .' I   '.
                     |.-"""-.|
@@ -33,13 +44,13 @@ SEC scanner
          /   |      ;              :   \
          |__.|      |              |.__|
              ;      |              | 
-           |      :              ;
-           |      :              |
-           ;      |              |
-           ;      |              ;
-           |      :              |
-           |      |              ;
-           |      |              ;
+             |      :              ;
+             |      :              |
+             ;      |              |
+             ;      |              ;
+             |      :              |
+             |      |              ;
+             |      |              ;
              '-._   ;           _.-'
                  `;"--.....--";`
                   |    | |    |
@@ -50,4 +61,6 @@ SEC scanner
            .` "-. `%   | |    %` .-" `.
           /      \    .: :.     /      \
           '-..___|_..=:` `-:=.._|___..-'
->>>>>>> 0d2e892edef5a1a856edd1846db587676de49582
+          
+</div>
+</div>
