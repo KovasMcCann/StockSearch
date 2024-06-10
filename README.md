@@ -3,7 +3,7 @@
 
 ## Basic Links
 
-[ [Edgar](https://sec.gov), [factset](https://www.factset.com/), [pytorch](https://pytorch.org/) ]
+[ [Edgar](https://sec.gov), [factset](https://www.factset.com/), [pytorch](https://pytorch.org/), [live data](https://finnhub.io/docs/api/market-news) ]
 
 ### TODO 📋
 - **Find** place to get live market data 
