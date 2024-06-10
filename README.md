@@ -3,7 +3,7 @@
 
 ## Basic Links
 
-[Edgar](https://sec.gov) 
+[ [Edgar](https://sec.gov), [factset](https://www.factset.com/), [pytorch](https://pytorch.org/) ]
 
 ### TODO 📋
 - **Find** place to get live market data 
