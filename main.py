@@ -1,3 +1,4 @@
-import torch
-x = torch.rand(5, 3)
-print(x)
+import requests
+
+def getprice(symbol):
+  print("hello")
