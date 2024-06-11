@@ -15,6 +15,9 @@
 - **How to** submit stock market transactions
 - **How to** use AI and given data to turn profit  
 
+### LICENSE 📖
+- For comercial use please contact the two main collaborators with direct access
+
 ## 
                       _..__
                     .' I   '.
