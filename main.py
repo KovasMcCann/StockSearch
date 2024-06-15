@@ -15,7 +15,8 @@ def getprice(symbol):
   print(data)
 
 #Available form types [0-Q, 10-K,8-K, 20-F, 40-F, 6-K]
-def getdoc(symbol, formtype):
+def getdoc(symbol, formtype): #commit
+
   print ("hello")
 
 #if  __name__ == "__main__":
