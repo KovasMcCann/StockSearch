@@ -11,6 +11,8 @@
 
 ### Ideas 💡 
 - Use stock market game to train model
+- [stock](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to)
+- Edagar
 
 
 ### SEC.gov Forms Guide
