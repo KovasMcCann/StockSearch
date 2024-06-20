@@ -8,6 +8,7 @@
 - **How to** implement sec and edgar to provide meaningful data
 - **How to** use PYTorch and what data to feed
 - **How to** submit stock market transactions
+- Use https://www.sec.gov/files/company_tickers.json and/or https://www.sec.gov/include/ticker.txt
 
 ### Ideas 💡 
 - Use stock market game to train model

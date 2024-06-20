@@ -6,8 +6,6 @@ import json
 usr_agnt = {'User-Agent' : 'Kovas McCann (KovasMcCann@outlook.com)'}
 Polygon_API_KEY = ''
 search_url = "https://www.sec.gov/cgi-bin/browse-edgar"
-
-
 class Get:
   #Available form types [0-Q, 10-K,8-K, 20-F, 40-F, 6-K]
   #SEC implementation
