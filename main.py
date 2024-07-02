@@ -47,9 +47,20 @@ class Get:
       return response.json()
   def tenk(json):
     Print('try')
-
+  
+class Parse:
+  def tenk(json):
+    print('try')
+  def tenq(json):
+    print('try')
+  def eightk(json):
+    print('try')
+  def fourteena(json):
+    print('try')
+  
 num = str(Get.CIK('Apple Inc.'))
 #print(GetJson.Get_URL(num))
+#print(Get.CIK('Apple Inc.'))
 content = Get.Json(num)
 
 with open("output.json", "w") as file: 
