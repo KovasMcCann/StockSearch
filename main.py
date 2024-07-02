@@ -65,3 +65,13 @@ content = Get.Json(num)
 
 with open("output.json", "w") as file: 
   json.dump(content, file, indent=4)
+
+""" Propere output.josn links to the SEC website for the company's filings.
+https://www.sec.gov/Archives/edgar/data/xslF345X05/0000320193-24-000075-index.html
+to get this link you need to look at the:
+primaryDocument - xslF345X05
+accessionNumber - 0000320193-24-000075
+
+
+
+"""
