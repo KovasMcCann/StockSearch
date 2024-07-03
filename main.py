@@ -74,42 +74,62 @@ class Get:
     if response.status_code == 200:
       #print(response.json())
       return response.json()
-  def tenk(json):
-    Print('try')
+  def builddb():
+    # Create a pipeline
+    pipeline = r.pipeline()
 
-# implement redis
-class Parse:
-  def tenk(json):
-    print('try')
-  def tenq(json):
-    print('try')
-  def eightk(json):
-    print('try')
-  def fourteena(json):
-    print('try')
+    # Queue up all the GET commands in the pipeline
+    for ticker in r.keys('*'):
+      pipeline.get(ticker)
 
-# Create a pipeline
-pipeline = r.pipeline()
+    # Execute all commands at once and get the results
+    results = pipeline.execute()
 
-# Queue up all the GET commands in the pipeline
-for ticker in r.keys('*'):
-    pipeline.get(ticker)
+    # Decode and print the results
+    for num in results:
+      num = num.decode('utf-8')
+      # CIK needs to be 10 digits
+      num_length = len(num)
+      needed_zeros = 10 - num_length  # Calculate how many zeros are needed to make num 10 characters long
+      zeros = '0' * needed_zeros  # Create a string of zeros of the needed length
+      #print(num)
+      content = Get.Json(zeros + num)  # Concatenate zeros and num to ensure it's 10 characters long
+      #print(zeros + num)
+      for i in range(0, len(content['filings']['recent']['accessionNumber'])):
+        if content['filings']['recent']['form'][i] == '10-Q':
+          print(content['filings']['recent']['accessionNumber'][i])
+          print(content['filings']['recent']['primaryDocument'][i])
+          print(content['filings']['recent']['filingDate'][i])
+          print(content['cik'])
+        elif content['filings']['recent']['form'][i] == '8-K':
+          print(content['filings']['recent']['accessionNumber'][i])
+          print(content['filings']['recent']['primaryDocument'][i])
+          print(content['filings']['recent']['filingDate'][i])
+          print(content['cik'])
+        elif content['filings']['recent']['form'][i] == '20-F':
+          print(content['filings']['recent']['accessionNumber'][i])
+          print(content['filings']['recent']['primaryDocument'][i])
+          print(content['filings']['recent']['filingDate'][i])
+          print(content['cik'])
+        elif content['filings']['recent']['form'][i] == '40-F':
+          print(content['filings']['recent']['accessionNumber'][i])
+          print(content['filings']['recent']['primaryDocument'][i])
+          print(content['filings']['recent']['filingDate'][i])
+          print(content['cik'])
+        elif content['filings']['recent']['form'][i] == '6-K':
+          print(content['filings']['recent']['accessionNumber'][i])
+          print(content['filings']['recent']['primaryDocument'][i])
+          print(content['filings']['recent']['filingDate'][i])
+          print(content['cik'])
 
-# Execute all commands at once and get the results
-results = pipeline.execute()
-
-# Decode and print the results
-for num in results:
-    num = num.decode('utf-8')
-    # CIK needs to be 10 digits
-    num_length = len(num)
-    needed_zeros = 10 - num_length  # Calculate how many zeros are needed to make num 10 characters long
-    zeros = '0' * needed_zeros  # Create a string of zeros of the needed length
-    print(num)
-    content = Get.Json(zeros + num)  # Concatenate zeros and num to ensure it's 10 characters long
-    #print(zeros + num)
-
+  def buildLinks():
+    #trying
+    print('test') 
+Get.builddb()
 ############################################
+import sys
+sys.exit(0)
+
 num = str(r.get('aapl').decode('utf-8'))
 #print(num)
 
@@ -123,7 +143,7 @@ content = Get.Json(zeros + num)  # Concatenate zeros and num to ensure it's 10 c
 #print(content)
 
 """ 
-Propere output.josn links to the SEC website for the company's filings.
+Proper output.json links to the SEC website for the company's filings.
 https://www.sec.gov/Archives/edgar/data/xslF345X05/0000320193-24-000075-index.html
 to get this link you need to look at the:
 primaryDocument - xslF345X05
@@ -140,13 +160,6 @@ https://www.sec.gov/Archives/edgar/data/{cik without zero}/{acessionNumber witho
 
 with open("output.json", "w") as file:
   json.dump(content, file, indent=4)  
-
-"""
-print(content['filings']['recent']['accessionNumber'][1])
-print(content['filings']['recent']['primaryDocument'][1])
-print(content['filings']['recent']['filingDate'][1])
-print(content['filings']['recent']['form'][1])
-"""
 
 for i in range(0, len(content['filings']['recent']['accessionNumber'])):
   if content['filings']['recent']['form'][i] == '10-K':
