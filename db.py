@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import redis 
+import msgpack
 
 #redis config 
 redis_host = '10.1.10.131'
@@ -20,13 +21,13 @@ class Get:
   #SEC implementation
   @staticmethod
   def updateTickerDB():
+    r.flushdb(0)
     url = 'https://www.sec.gov/include/ticker.txt'
     table = requests.get(url, headers=usr_agnt)
     if table.status_code == 200:
       stored = table.text.split()
       # Switch to database 0 once instead of doing it in the loop
       r.select(0)
-      r.flushdb(0)
       # Use a pipeline to batch commands
       pipeline = r.pipeline()
       for i in range(0, len(stored), 2):
@@ -68,55 +69,74 @@ class Get:
       'count': '10',
       'CIK': cik
     }
-
-    response = requests.get(f'https://data.sec.gov/submissions/CIK{cik}.json', params=params, headers=usr_agnt)
+    session = requests.Session()
+    response = session.get(f'https://data.sec.gov/submissions/CIK{cik}.json', params=params, headers=usr_agnt)
 
     if response.status_code == 200:
       #print(response.json())
       return response.json()
-  def builddb():
-    # Create a pipeline
+  def buildDB():
+    r.select(0)
+
     pipeline = r.pipeline()
 
-    # Queue up all the GET commands in the pipeline
     for ticker in r.keys('*'):
       pipeline.get(ticker)
 
-    # Execute all commands at once and get the results
     results = pipeline.execute()
-    r.flushdb(1) #may want to remove this
-    # Decode and print the results
+
     for num in results:
       num = num.decode('utf-8')
+      print(num)
+    
+      #num = str(r.get('aapl').decode('utf-8'))
+      #print(num)
+
       # CIK needs to be 10 digits
       num_length = len(num)
       needed_zeros = 10 - num_length  # Calculate how many zeros are needed to make num 10 characters long
       zeros = '0' * needed_zeros  # Create a string of zeros of the needed length
-      #print(num)
-      content = Get.Json(zeros + num)  # Concatenate zeros and num to ensure it's 10 characters long
-      #print(zeros + num)
+
+      content = Get.Json(zeros + num)
+      print(content)
+
+      forms = {
+        '10-Q': [],
+        '10-K': [],
+        '8-K': [],
+        '20-F': [],
+        '40-F': [],
+        '6-K': [],
+      }
+
       for i in range(0, len(content['filings']['recent']['accessionNumber'])):
         r.select(1)
-        forms = {
-          '10-Q': [],
-        }
-        r.set(content['cik'], forms )
+        r.set(content['cik'], msgpack.packb(forms)) 
         if content['filings']['recent']['form'][i] == '10-Q':
-          form_type = '10-Q'
           accession_number = content['filings']['recent']['accessionNumber'][i]
           primary = content['filings']['recent']['primaryDocument'][i]
           filingdate = content['filings']['recent']['filingDate'][i]
           cik = content['cik']
+
           #url = f'https://www.sec.gov/Archives/edgar/data/{cik}/{accession_number.split('-')}/{primary}'
           url = f'https://www.sec.gov/Archives/edgar/data/{cik}/{"".join(accession_number.split("-"))}/{primary}'
           print(url)
-          r.select(1)
           forms['10-Q'].append({'url': url, 'date': filingdate})
-          r.set(cik, forms) 
-        """
-        elif content['filings']['recent']['form'][i] == '8-K':
-          print(content['filings']['recent']['accessionNumber'][i])
-          print(content['filings']['recent']['primaryDocument'][i])
+
+      r.select(1)
+      r.append(content['cik'], str(forms))
+
+  def tree(num):
+    r.select(num)
+    keys = r.keys('*')
+
+    for key in keys:
+      value = r.get(key)
+      print(f'Key: {key.decode("utf-8")}, Value: {value.decode("utf-8")}')
+      """
+      elif content['filings']['recent']['form'][i] == '8-K':
+        print(content['filings']['recent']['accessionNumber'][i])
+        print(content['filings']['recent']['primaryDocument'][i])
           print(content['filings']['recent']['filingDate'][i])
           print(content['cik'])
         elif content['filings']['recent']['form'][i] == '20-F':
@@ -136,13 +156,15 @@ class Get:
           print(content['cik'])
         """
 
-  def buildLinks():
-    #trying
-    print('test') 
-Get.builddb()
+#Get.updateTickerDB()
+Get.buildDB()
+#Get.tree()
 ############################################
 import sys
 sys.exit(0)
+#Get.updateTickerDB()
+
+#Get.tree(0)
 
 num = str(r.get('aapl').decode('utf-8'))
 #print(num)
@@ -181,6 +203,8 @@ for i in range(0, len(content['filings']['recent']['accessionNumber'])):
     print(content['filings']['recent']['primaryDocument'][i])
     print(content['filings']['recent']['filingDate'][i])
     print(content['cik'])
+    url = f'https://www.sec.gov/Archives/edgar/data/{zeros + num}/{"".join(content["filings"]["recent"]["accessionNumber"][i].split("-"))}/{content["filings"]["recent"]["primaryDocument"][i]}'
+    print(url)
 
 # Redis Example
 """
