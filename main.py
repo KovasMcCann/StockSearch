@@ -26,7 +26,7 @@ class Get:
       stored = table.text.split()
       # Switch to database 0 once instead of doing it in the loop
       r.select(0)
-      r.flushdb()
+      r.flushdb(0)
       # Use a pipeline to batch commands
       pipeline = r.pipeline()
       for i in range(0, len(stored), 2):
@@ -84,7 +84,7 @@ class Get:
 
     # Execute all commands at once and get the results
     results = pipeline.execute()
-
+    r.flushdb(1) #may want to remove this
     # Decode and print the results
     for num in results:
       num = num.decode('utf-8')
@@ -96,11 +96,24 @@ class Get:
       content = Get.Json(zeros + num)  # Concatenate zeros and num to ensure it's 10 characters long
       #print(zeros + num)
       for i in range(0, len(content['filings']['recent']['accessionNumber'])):
+        r.select(1)
+        forms = {
+          '10-Q': [],
+        }
+        r.set(content['cik'], forms )
         if content['filings']['recent']['form'][i] == '10-Q':
-          print(content['filings']['recent']['accessionNumber'][i])
-          print(content['filings']['recent']['primaryDocument'][i])
-          print(content['filings']['recent']['filingDate'][i])
-          print(content['cik'])
+          form_type = '10-Q'
+          accession_number = content['filings']['recent']['accessionNumber'][i]
+          primary = content['filings']['recent']['primaryDocument'][i]
+          filingdate = content['filings']['recent']['filingDate'][i]
+          cik = content['cik']
+          #url = f'https://www.sec.gov/Archives/edgar/data/{cik}/{accession_number.split('-')}/{primary}'
+          url = f'https://www.sec.gov/Archives/edgar/data/{cik}/{"".join(accession_number.split("-"))}/{primary}'
+          print(url)
+          r.select(1)
+          forms['10-Q'].append({'url': url, 'date': filingdate})
+          r.set(cik, forms) 
+        """
         elif content['filings']['recent']['form'][i] == '8-K':
           print(content['filings']['recent']['accessionNumber'][i])
           print(content['filings']['recent']['primaryDocument'][i])
@@ -121,6 +134,7 @@ class Get:
           print(content['filings']['recent']['primaryDocument'][i])
           print(content['filings']['recent']['filingDate'][i])
           print(content['cik'])
+        """
 
   def buildLinks():
     #trying
