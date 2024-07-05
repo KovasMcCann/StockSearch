@@ -1,7 +1,13 @@
+#######################################################
+# Name: sec.py                                        #
+# Description: SEC class for SEC operations           #
+#######################################################
+
 import requests
 from bs4 import BeautifulSoup
 import json
 import redis 
+import yfinance as yf
 
 #redis config 
 redis_host = '10.1.10.131'
@@ -12,7 +18,7 @@ r = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db, password=re
 
 #header for SEC access
 usr_agnt = {'User-Agent' : 'Kovas McCann (KovasMcCann@outlook.com)'}
-Polygon_API_KEY = ''
+Polygon_API_KEY = '7YQ8QUtevb_KLZnnAYH9CkKGON4dDKJ1'
 search_url = "https://www.sec.gov/cgi-bin/browse-edgar"
 
 class Get:
@@ -90,7 +96,11 @@ class Get:
     
       #num = str(r.get('aapl').decode('utf-8'))
       #print(num)
-
+#######################################################
+# Name: tensor.py                                     #
+# Description: Tensor class for tensor operations     #
+# Idea: use sec forms and yahoo finance to build an ai#
+#######################################################
       # CIK needs to be 10 digits
       num_length = len(num)
       needed_zeros = 10 - num_length  # Calculate how many zeros are needed to make num 10 characters long
@@ -137,10 +147,33 @@ class Get:
       value = r.get(key)
       #print(f'Key: {key.decode("utf-8")}, Value: {value.decode("utf-8")}')
       print(f'Key: {key.decode("utf-8")}, Value: {value}')
+  def gethistory(ticker):
+
+    # Download historical data for a specific stock
+    #ticker = "AAPL"
+    data = yf.download(ticker, start="2020-01-01", end="2020-12-31")
+
+
+    tck = yf.Ticker(ticker)
+    tck.info
+
+    #print all data in terminal 
+    import pandas as pd
+
+    pd.set_option('display.max_columns', None)  # or 1000
+    pd.set_option('display.max_rows', None)  # or 1000A
+    pd.set_option('display.max_colwidth', None)  # or 199
+
+    hist = tck.history(period="1y")
+    print(hist)
+
+    #print(data)
 
 #Get.updateTickerDB()
-Get.buildlnkDB()
+#Get.buildlnkDB()
 #Get.tree(1)
+Get.gethistory('AAPL')
+Get.gethistory('TSLA')
 
 """ 
 Proper output.json links to the SEC website for the company's filings.
