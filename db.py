@@ -141,24 +141,6 @@ class Get:
 #Get.updateTickerDB()
 Get.buildlnkDB()
 #Get.tree(1)
-############################################
-import sys
-sys.exit(0)
-#Get.updateTickerDB()
-
-#Get.tree(0)
-
-num = str(r.get('aapl').decode('utf-8'))
-#print(num)
-
-# CIK needs to be 10 digits
-num_length = len(num)
-needed_zeros = 10 - num_length  # Calculate how many zeros are needed to make num 10 characters long
-zeros = '0' * needed_zeros  # Create a string of zeros of the needed length
-
-content = Get.Json(zeros + num)  # Concatenate zeros and num to ensure it's 10 characters long
-#print(zeros + num)
-#print(content)
 
 """ 
 Proper output.json links to the SEC website for the company's filings.
@@ -174,31 +156,4 @@ database 1 - for the filing url
 Get primary doc 
 https://www.sec.gov/Archives/edgar/data/320193/000192109424000702/xsl144X01/primary_doc.xml
 https://www.sec.gov/Archives/edgar/data/{cik without zero}/{acessionNumber without -}/primaryDocument
-"""
-
-with open("output.json", "w") as file:
-  json.dump(content, file, indent=4)  
-
-for i in range(0, len(content['filings']['recent']['accessionNumber'])):
-  if content['filings']['recent']['form'][i] == '10-K':
-    print(content['filings']['recent']['accessionNumber'][i])
-    print(content['filings']['recent']['primaryDocument'][i])
-    print(content['filings']['recent']['filingDate'][i])
-    print(content['cik'])
-    url = f'https://www.sec.gov/Archives/edgar/data/{zeros + num}/{"".join(content["filings"]["recent"]["accessionNumber"][i].split("-"))}/{content["filings"]["recent"]["primaryDocument"][i]}'
-    print(url)
-
-# Redis Example
-"""
-r.select(0) #select database 0
-
-r.set('foo', 'bar')
-value = r.get('foo')
-print(value.decode('utf-8'))
-
-r.select(1) #select database 1  
-
-r.set('second', 'bars')
-value = r.get('second')
-print(value.decode('utf-8'))
 """
