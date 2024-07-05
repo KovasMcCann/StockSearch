@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import redis 
-import msgpack
 
 #redis config 
 redis_host = '10.1.10.131'
@@ -20,7 +19,7 @@ class Get:
   #Available form types [0-Q, 10-K,8-K, 20-F, 40-F, 6-K]
   #SEC implementation
   @staticmethod
-  def updateTickerDB():
+  def buildTkrDB():
     r.flushdb(0)
     url = 'https://www.sec.gov/include/ticker.txt'
     table = requests.get(url, headers=usr_agnt)
@@ -75,7 +74,7 @@ class Get:
     if response.status_code == 200:
       #print(response.json())
       return response.json()
-  def buildDB():
+  def buildlnkDB():
     r.select(0)
 
     pipeline = r.pipeline()
@@ -87,7 +86,7 @@ class Get:
 
     for num in results:
       num = num.decode('utf-8')
-      print(num)
+      #print(num)
     
       #num = str(r.get('aapl').decode('utf-8'))
       #print(num)
@@ -98,7 +97,7 @@ class Get:
       zeros = '0' * needed_zeros  # Create a string of zeros of the needed length
 
       content = Get.Json(zeros + num)
-      print(content)
+      #print(content)
 
       forms = {
         '10-Q': [],
@@ -108,11 +107,12 @@ class Get:
         '40-F': [],
         '6-K': [],
       }
-
+      flist = ['10-Q', '10-K', '8-K', '20-F', '40-F', '6-K']
       for i in range(0, len(content['filings']['recent']['accessionNumber'])):
-        r.select(1)
-        r.set(content['cik'], msgpack.packb(forms)) 
-        if content['filings']['recent']['form'][i] == '10-Q':
+        #r.select(1)
+        #r.set(content['cik'], json.dumps(forms)) 
+        form_type = content['filings']['recent']['form'][i]
+        if form_type in flist:
           accession_number = content['filings']['recent']['accessionNumber'][i]
           primary = content['filings']['recent']['primaryDocument'][i]
           filingdate = content['filings']['recent']['filingDate'][i]
@@ -121,10 +121,13 @@ class Get:
           #url = f'https://www.sec.gov/Archives/edgar/data/{cik}/{accession_number.split('-')}/{primary}'
           url = f'https://www.sec.gov/Archives/edgar/data/{cik}/{"".join(accession_number.split("-"))}/{primary}'
           print(url)
-          forms['10-Q'].append({'url': url, 'date': filingdate})
+          #print(content['filings']['recent']['form'][i])
+          forms[form_type].append({'url': url, 'date': filingdate})
 
       r.select(1)
-      r.append(content['cik'], str(forms))
+      #r.append(content['cik'], str(forms))
+      #print(forms)
+      r.set(content['cik'], json.dumps(forms))
 
   def tree(num):
     r.select(num)
@@ -132,33 +135,12 @@ class Get:
 
     for key in keys:
       value = r.get(key)
-      print(f'Key: {key.decode("utf-8")}, Value: {value.decode("utf-8")}')
-      """
-      elif content['filings']['recent']['form'][i] == '8-K':
-        print(content['filings']['recent']['accessionNumber'][i])
-        print(content['filings']['recent']['primaryDocument'][i])
-          print(content['filings']['recent']['filingDate'][i])
-          print(content['cik'])
-        elif content['filings']['recent']['form'][i] == '20-F':
-          print(content['filings']['recent']['accessionNumber'][i])
-          print(content['filings']['recent']['primaryDocument'][i])
-          print(content['filings']['recent']['filingDate'][i])
-          print(content['cik'])
-        elif content['filings']['recent']['form'][i] == '40-F':
-          print(content['filings']['recent']['accessionNumber'][i])
-          print(content['filings']['recent']['primaryDocument'][i])
-          print(content['filings']['recent']['filingDate'][i])
-          print(content['cik'])
-        elif content['filings']['recent']['form'][i] == '6-K':
-          print(content['filings']['recent']['accessionNumber'][i])
-          print(content['filings']['recent']['primaryDocument'][i])
-          print(content['filings']['recent']['filingDate'][i])
-          print(content['cik'])
-        """
+      #print(f'Key: {key.decode("utf-8")}, Value: {value.decode("utf-8")}')
+      print(f'Key: {key.decode("utf-8")}, Value: {value}')
 
 #Get.updateTickerDB()
-Get.buildDB()
-#Get.tree()
+Get.buildlnkDB()
+#Get.tree(1)
 ############################################
 import sys
 sys.exit(0)
