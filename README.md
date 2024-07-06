@@ -7,9 +7,7 @@
 
 ### TODO 📋
 - **How to** submit stock market transactions
-- **Implement** [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag)
-
-### Ideas 💡 
+- Implement [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag)
 - learn how to train AI models
 
 ### SEC.gov Forms Guide
