@@ -96,11 +96,7 @@ class Get:
     
       #num = str(r.get('aapl').decode('utf-8'))
       #print(num)
-#######################################################
-# Name: tensor.py                                     #
-# Description: Tensor class for tensor operations     #
-# Idea: use sec forms and yahoo finance to build an ai#
-#######################################################
+
       # CIK needs to be 10 digits
       num_length = len(num)
       needed_zeros = 10 - num_length  # Calculate how many zeros are needed to make num 10 characters long
