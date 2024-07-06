@@ -8,7 +8,7 @@
 - Implement [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag)
 - learn how to train AI models
 
-## Resources
+### Resources
 - For SEC form guide [Link](sec.md)
 
 ### LICENSE 📖
