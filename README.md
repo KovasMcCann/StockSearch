@@ -9,7 +9,7 @@
 - learn how to train AI models
 
 ### Resources
-- For SEC form guide [Link](sec.md)
+- For SEC form guide: [Link](sec.md)
 
 ### LICENSE 📖
 - **For comercial use please contact Kovas McCann**
