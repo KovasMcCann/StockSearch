@@ -109,10 +109,11 @@ tickers = r.keys('*')
 total_tickers = len(tickers)
 
 current_ticker_number = 0
-for ticker in tickers:
+
+for ticker in tickers[:10]: # run first 10 tickers becase programs fails
     current_ticker_number += 1
     print(f"Processing ticker : {ticker.decode('utf-8')} {current_ticker_number}/{total_tickers}")
-    trainticker(ticker.decode('utf-8'))
+    trainticker(ticker.decode('utf-8'))\
 
 """
 semaphore = multiprocessing.Semaphore(1)  # Correctly allow only 3 processes at a time
@@ -148,8 +149,10 @@ for process in processes:
 #X, Y = generate_price('MSFT')
 
 # try to save model * not tested *
-from tensorflow import keras
-model.save('stock_predictor.h5')
+#from tensorflow import keras
+
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.save('stock_predictor.keras')
 
 guessticker = yf.Ticker('MSFT')
 Y = [] #price now

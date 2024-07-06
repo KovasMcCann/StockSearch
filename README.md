@@ -5,16 +5,11 @@
 [ [Edgar](https://sec.gov), [factset](https://www.factset.com/), [pytorch](https://pytorch.org/), [live data](https://finnhub.io/docs/api/market-news), [nasdaq](https://docs.data.nasdaq.com/) ]
 
 ### TODO 📋
-- **How to** implement sec and edgar to provide meaningful data
-- **How to** use PYTorch and what data to feed
 - **How to** submit stock market transactions
-- Use https://www.sec.gov/files/company_tickers.json and/or https://www.sec.gov/include/ticker.txt
+- **Implement** [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag)
 
 ### Ideas 💡 
-- Use stock market game to train model
-- [stock](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to)
-- Edagar
-
+- learn how to train AI models
 
 ### SEC.gov Forms Guide
 
@@ -50,7 +45,7 @@
 <code> ZN9F4XFJ9CHZYZ44 </code>
 
 ### LICENSE 📖
-- **For comercial use please contact one of the two main collaborators that have direct access**
+- **For comercial use please contact Kovas McCann**
 
 ## 
                       _..__
