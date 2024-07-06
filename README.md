@@ -2,8 +2,6 @@
 
 ## Basic Links
 
-[ [Edgar](https://sec.gov), [factset](https://www.factset.com/), [pytorch](https://pytorch.org/), [live data](https://finnhub.io/docs/api/market-news), [nasdaq](https://docs.data.nasdaq.com/) ]
-
 ### Progress
 ![Screenshot from 2024-07-06 02-15-41](https://github.com/KovasMcCann/StockSearch/assets/44278533/bc097197-c45b-4800-9f2b-92a8cb845fdd)
 
@@ -41,11 +39,6 @@
 6. **Form 6-K**:  
    - Filed by foreign private issuers with the SEC to provide updates required by their home country's securities regulations.
    - Typically includes information not covered in Forms 20-F or 40-F.
-
-
-
-### Keys 🔑
-<code> ZN9F4XFJ9CHZYZ44 </code>
 
 ### LICENSE 📖
 - **For comercial use please contact Kovas McCann**
