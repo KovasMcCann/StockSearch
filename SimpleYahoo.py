@@ -147,6 +147,10 @@ for process in processes:
 
 #X, Y = generate_price('MSFT')
 
+# try to save model * not tested *
+from tensorflow import keras
+model.save('stock_predictor.h5')
+
 guessticker = yf.Ticker('MSFT')
 Y = [] #price now
 
