@@ -1,7 +1,5 @@
 # StockSearch 📈
 
-## Basic Links
-
 ### Progress
 ![Screenshot from 2024-07-06 02-15-41](https://github.com/KovasMcCann/StockSearch/assets/44278533/bc097197-c45b-4800-9f2b-92a8cb845fdd)
 
