@@ -5,7 +5,7 @@
 
 ### TODO 📋
 - **How to** submit stock market transactions
-- Implement [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag) [alpaca.markets](https://alpaca.markets)
+- Implement [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag) and [alpaca.markets](https://alpaca.markets)
 - learn how to train AI models
 
 ### Resources
