@@ -11,5 +11,12 @@
 ### Resources
 - For SEC form guide: [Link](sec.md)
 
+### Books to read 
+- Systematic Trading
+- Trading system and methods
+- Advances in financial machine learning
+- The leverage space trading model
+- Mathematics of money management
+
 ### LICENSE 📖
 - **For comercial use please contact Kovas McCann**
