@@ -75,7 +75,8 @@ total_tickers = len(tickers)
 
 current_ticker_number = 0
 
-for ticker in tickers[:100]: # run first 10 tickers becase programs fails
+#for ticker in tickers[:100]: # run first 10 tickers becase programs fails
+for ticker in tickers: 
     current_ticker_number += 1
     print(f"Processing ticker : {ticker.decode('utf-8')} {current_ticker_number}/{total_tickers}")
     trainticker(ticker.decode('utf-8'), '1y')\
