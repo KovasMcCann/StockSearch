@@ -1,7 +1,10 @@
 # StockSearch 📈
 
 ### Progress
-![Screenshot from 2024-07-06 02-15-41](https://github.com/KovasMcCann/StockSearch/assets/44278533/bc097197-c45b-4800-9f2b-92a8cb845fdd)
+| July 6th | July 8th (Significantly Improved Accuracy) |
+|----------|------------------------------------------|
+| ![Screenshot from 2024-07-06 02-15-41](https://github.com/KovasMcCann/StockSearch/assets/44278533/bc097197-c45b-4800-9f2b-92a8cb845fdd) | ![Screenshot from 2024-07-08 15-26-28](https://github.com/KovasMcCann/StockSearch/assets/44278533/81248cee-5382-4846-8611-f4c42c178c09) |
+
 
 ### TODO 📋
 - **How to** submit stock market transactions
