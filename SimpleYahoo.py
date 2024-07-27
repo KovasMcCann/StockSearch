@@ -58,9 +58,10 @@ def trainticker(ticker, time):
 
         # Train the model
 
+        # shows the data 10 times to the model with a step of 10
         i = 10
         while i < 100:
-            X = np.array(X, dtype=np.float32).reshape((1, lenx, 1)) + i
+            X = np.array(X, dtype=np.float32).reshape((1, lenx, 1)) + i 
             Y = np.array(Y, dtype=np.float32) + i
             print(f"Training... at i: {i} for ticker: {ticker} with price: {Y} ")
             model.fit(X, Y, epochs=200, verbose=0, callbacks=callbacks)
