@@ -11,6 +11,7 @@ import numpy as np
 import yfinance as yf
 import multiprocessing
 import redis
+import plotext as plt
 
 #redis config   
 redis_host = '10.1.10.131'
@@ -51,7 +52,6 @@ def trainticker(ticker, time):
         X = X[:-1]
         lenx = len(X)
 
-        print(f"Data Size: {lenx} days")
 
         #X = np.array(X, dtype=np.float32).reshape((1, lenx, 1))
         #Y = np.array(Y, dtype=np.float32)
@@ -70,24 +70,44 @@ def trainticker(ticker, time):
         # Calculate the difference
         difference = desired_median - current_median
 
-        print(np.array(X))
         # Adjust the array to have the desired median
         X = np.array(X, dtype=np.float32) + difference
         Y = np.array(Y, dtype=np.float32) + difference
-        print(np.array(X))
-
+        #plot data
+        plt.clf()   
+        plt.plot(X.flatten())
+        plt.show()
+        
         # Reshape the array
         X = X.reshape((1, lenx, 1))
-
+        
+        print(f"Data Size: {lenx} days")
         print(f"New Median: {np.median(X)}")
 
+        # Parameters
+        base_perturbation = -10  # Start below the base price
+        max_perturbation = 10    # End above the base price
+        num_steps = 10          # Number of steps
+
+        # Calculate the step size for perturbation
+        step_size = (max_perturbation - base_perturbation) / num_steps
+
+        # Training loop
         i = 0
-        while i < 90: # move the data 10 times
-            X = np.array(X, dtype=np.float32).reshape((1, lenx, 1)) + i 
-            Y = np.array(Y, dtype=np.float32) + i
-            print(f"Training... at i: {i} for ticker: {ticker} with price: {Y} ")
-            model.fit(X, Y, epochs=200, verbose=0, callbacks=callbacks)
-            i += 10
+        while i <= num_steps:  # Iterate through the number of steps
+        # Calculate the current perturbation
+            perturbation = base_perturbation + (i * step_size)
+    
+        # Adjust data
+            X_adjusted = np.array(X, dtype=np.float32).reshape((1, lenx, 1)) + i
+            Y_adjusted = np.array(Y, dtype=np.float32) + perturbation
+    
+            print(f"Training... at step: {i} with perturbation: {perturbation} for ticker: {ticker} with price: {Y_adjusted}")
+    
+            # Fit the model with the adjusted data
+            model.fit(X_adjusted, Y_adjusted, epochs=200, verbose=0, callbacks=callbacks)
+    
+            i += 1  # Increment step
 
         #print(f"Training completed for: {ticker}")
     except ValueError as e:
@@ -147,10 +167,26 @@ Y.append(todays_data['Close'].iloc[-1])
 todays_data = guessticker.history(period='1y')  # '1mo' fetches approximately the last 30 days
 X = todays_data['Close'].tolist()
 
+desired_median = 100
+
+# Calculate current median
+current_median = np.median(X)
+
+# Calculate the difference
+difference = desired_median - current_median
+
+# Adjust the array to have the desired median
+X = np.array(X, dtype=np.float32) + difference
+
 print(f'Y: {Y}')
 
 # Demonstrate prediction
+
+plt.clf()   
+plt.plot(X.flatten())
+plt.show()
+
 lenx = len(X)
 test_input = np.array(X, dtype=np.float32).reshape((1, lenx, 1))
 predicted_number = model.predict(test_input).flatten()[0]
-print(f'Predicted Price: {predicted_number}')
+print(f'Predicted Price: {predicted_number + difference} Actual Price: {Y[0] + difference} Difference: {predicted_number - Y[0]}')
