@@ -59,8 +59,30 @@ def trainticker(ticker, time):
         # Train the model
 
         # shows the data 10 times to the model with a step of 10
-        i = 10
-        while i < 100:
+
+        # get mean of data equal to 500 
+        # Desired median
+        desired_median = 100
+
+        # Calculate current median
+        current_median = np.median(X)
+
+        # Calculate the difference
+        difference = desired_median - current_median
+
+        print(np.array(X))
+        # Adjust the array to have the desired median
+        X = np.array(X, dtype=np.float32) + difference
+        Y = np.array(Y, dtype=np.float32) + difference
+        print(np.array(X))
+
+        # Reshape the array
+        X = X.reshape((1, lenx, 1))
+
+        print(f"New Median: {np.median(X)}")
+
+        i = 0
+        while i < 90: # move the data 10 times
             X = np.array(X, dtype=np.float32).reshape((1, lenx, 1)) + i 
             Y = np.array(Y, dtype=np.float32) + i
             print(f"Training... at i: {i} for ticker: {ticker} with price: {Y} ")

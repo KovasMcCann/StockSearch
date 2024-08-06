@@ -164,9 +164,9 @@ class Get:
     print(hist)
 
     #print(data)
-
+Get.buildTkrDB()
 #Get.updateTickerDB()
-#Get.buildlnkDB()
+Get.buildlnkDB()
 #Get.tree(1)
 Get.gethistory('AAPL')
 Get.gethistory('TSLA')
