@@ -1,41 +1,48 @@
 #######################################################
 # Name: SimpleYahoo.py                                #
-# Description: simple yahoo and tensorflow predictor  #
+# Description: simple yahoo and pytorch predictor     #
 # Idea: use yahoo finance to build an ai              #
 #######################################################
 
-# the code bellow is to learn about tensor flow
-import tensorflow as tf
-from tensorflow.keras.callbacks import TerminateOnNaN
+# the code below is to learn about PyTorch
+import torch
+import torch.nn as nn
+import torch.optim as optim
 import numpy as np
 import yfinance as yf
 import multiprocessing
 import redis
 import plotext as plt
 
-#redis config   
+# Redis config   
 redis_host = '10.1.10.131'
 redis_port = 6379
 redis_db = 0  # default database
 redis_password = None  # no password set
 r = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
 
-#model config 
-model = tf.keras.Sequential([
-    tf.keras.layers.LSTM(50, activation='tanh', input_shape=(None, 1), kernel_initializer='glorot_uniform'), # what does this mean
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(1)
-])
-# Compile the model
-# model.compile(optimizer='adam', loss='mse')
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipvalue=0.5), loss='mse') 
+# Define the model
+class StockPredictor(nn.Module):
+    def __init__(self):
+        super(StockPredictor, self).__init__()
+        self.lstm = nn.LSTM(input_size=1, hidden_size=50, batch_first=True)
+        self.dropout = nn.Dropout(0.2)
+        self.dense = nn.Linear(50, 1)
 
-callbacks = [TerminateOnNaN()]
+    def forward(self, x):
+        x, _ = self.lstm(x)
+        x = self.dropout(x)
+        x = self.dense(x[:, -1, :])
+        return x
+
+model = StockPredictor()
+
+# Define the optimizer and loss function
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+criterion = nn.MSELoss()
 
 # Generate dataset
-
 def trainticker(ticker, time):
-    #print(f'Training: {ticker}')
     ticker_obj = yf.Ticker(ticker)
 
     try:
@@ -52,15 +59,6 @@ def trainticker(ticker, time):
         X = X[:-1]
         lenx = len(X)
 
-
-        #X = np.array(X, dtype=np.float32).reshape((1, lenx, 1))
-        #Y = np.array(Y, dtype=np.float32)
-
-        # Train the model
-
-        # shows the data 10 times to the model with a step of 10
-
-        # get mean of data equal to 500 
         # Desired median
         desired_median = 100
 
@@ -73,7 +71,8 @@ def trainticker(ticker, time):
         # Adjust the array to have the desired median
         X = np.array(X, dtype=np.float32) + difference
         Y = np.array(Y, dtype=np.float32) + difference
-        #plot data
+
+        # Plot data
         plt.clf()   
         plt.plot(X.flatten())
         plt.show()
@@ -93,30 +92,28 @@ def trainticker(ticker, time):
         step_size = (max_perturbation - base_perturbation) / num_steps
 
         # Training loop
-        i = 0
-        while i <= num_steps:  # Iterate through the number of steps
-        # Calculate the current perturbation
+        for i in range(num_steps + 1):  # Iterate through the number of steps
+            # Calculate the current perturbation
             perturbation = base_perturbation + (i * step_size)
     
-        # Adjust data
-            X_adjusted = np.array(X, dtype=np.float32).reshape((1, lenx, 1)) + i
-            Y_adjusted = np.array(Y, dtype=np.float32) + perturbation
+            # Adjust data
+            X_adjusted = torch.tensor(X, dtype=torch.float32).reshape((1, lenx, 1)) + i
+            Y_adjusted = torch.tensor(Y, dtype=torch.float32) + perturbation
     
             print(f"Training... at step: {i} with perturbation: {perturbation} for ticker: {ticker} with price: {Y_adjusted}")
     
             # Fit the model with the adjusted data
-            model.fit(X_adjusted, Y_adjusted, epochs=200, verbose=0, callbacks=callbacks)
-    
-            i += 1  # Increment step
+            model.train()
+            optimizer.zero_grad()
+            output = model(X_adjusted)
+            loss = criterion(output, Y_adjusted)
+            loss.backward()
+            optimizer.step()
 
-        #print(f"Training completed for: {ticker}")
     except ValueError as e:
         print(e)
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-
-# X= [1, 2, 3] 
-# Y= [4]
 
 r.select(0)
 
@@ -126,44 +123,21 @@ total_tickers = len(tickers)
 
 current_ticker_number = 0
 
-for ticker in tickers[:2]: # run first 10 tickers becase programs fails
-    #for ticker in tickers: 
+for ticker in tickers[:2]: # run first 10 tickers because programs fails
     current_ticker_number += 1
     print(f"Processing ticker : {ticker.decode('utf-8')} {current_ticker_number}/{total_tickers}")
-    trainticker(ticker.decode('utf-8'), '1y')\
+    trainticker(ticker.decode('utf-8'), '1y')
 
-"""
-semaphore = multiprocessing.Semaphore(1)  # Correctly allow only 3 processes at a time
+# Save the model
+torch.save(model.state_dict(), 'stock_predictor.pth')
 
-# Assuming 'r' is previously defined and is a Redis connection
-r.select(0)
-
-processes = []
-
-masterdictionary = multiprocessing.Manager().dict()
-
-for ticker in r.keys('*'):
-    semaphore.acquire()
-    try:
-        process = multiprocessing.Process(target=trainticker, args=(ticker.decode('utf-8'),))
-        processes.append(process)
-        process.start()
-    finally:
-        semaphore.release()
-
-for process in processes:
-    process.join()
-"""
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-model.save('stock_predictor.keras')
-
+# Demonstrate prediction
 guessticker = yf.Ticker('lea')
-Y = [] #price now
+Y = [] # price now
 
 todays_data = guessticker.history(period='1d', interval='1m')
 Y.append(todays_data['Close'].iloc[-1])
-#print(f'Y: {Y}')
-#X = [] #price previous price
+
 todays_data = guessticker.history(period='5d')  # '1mo' fetches approximately the last 30 days
 X = todays_data['Close'].tolist()
 
@@ -178,13 +152,14 @@ difference = desired_median - current_median
 # Adjust the array to have the desired median
 X = np.array(X, dtype=np.float32) + difference
 
-# Demonstrate prediction
-
+# Plot data
 plt.clf()   
 plt.plot(X.flatten())
 plt.show()
 
 lenx = len(X)
-test_input = np.array(X, dtype=np.float32).reshape((1, lenx, 1))
-predicted_number = model.predict(test_input).flatten()[0]
+test_input = torch.tensor(X, dtype=torch.float32).reshape((1, lenx, 1))
+model.eval()
+with torch.no_grad():
+    predicted_number = model(test_input).flatten().item()
 print(f'Predicted Price: {predicted_number} Actual Price: {Y + difference} Difference: {difference}')
