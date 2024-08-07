@@ -4,15 +4,14 @@
 # Idea: use yahoo finance to build an ai              #
 #######################################################
 
-# the code below is to learn about PyTorch
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import yfinance as yf
-import multiprocessing
 import redis
 import plotext as plt
+from torch.utils.data import DataLoader, TensorDataset
 
 # Redis config   
 redis_host = '10.1.10.131'
@@ -21,21 +20,29 @@ redis_db = 0  # default database
 redis_password = None  # no password set
 r = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
 
+# Check if GPU is available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Define the model
 class StockPredictor(nn.Module):
     def __init__(self):
         super(StockPredictor, self).__init__()
-        self.lstm = nn.LSTM(input_size=1, hidden_size=50, batch_first=True)
-        self.dropout = nn.Dropout(0.2)
-        self.dense = nn.Linear(50, 1)
+        self.lstm1 = nn.LSTM(input_size=1, hidden_size=50, batch_first=True)
+        self.lstm2 = nn.LSTM(input_size=50, hidden_size=50, batch_first=True)
+        self.dropout = nn.Dropout(0.3)
+        self.dense1 = nn.Linear(50, 25)
+        self.dense2 = nn.Linear(25, 1)
+        self.relu = nn.ReLU()
 
     def forward(self, x):
-        x, _ = self.lstm(x)
+        x, _ = self.lstm1(x)
+        x, _ = self.lstm2(x)
         x = self.dropout(x)
-        x = self.dense(x[:, -1, :])
+        x = self.relu(self.dense1(x[:, -1, :]))
+        x = self.dense2(x)
         return x
 
-model = StockPredictor()
+model = StockPredictor().to(device)
 
 # Define the optimizer and loss function
 optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -72,11 +79,6 @@ def trainticker(ticker, time):
         X = np.array(X, dtype=np.float32) + difference
         Y = np.array(Y, dtype=np.float32) + difference
 
-        # Plot data
-        plt.clf()   
-        plt.plot(X.flatten())
-        plt.show()
-        
         # Reshape the array
         X = X.reshape((1, lenx, 1))
         
@@ -91,24 +93,31 @@ def trainticker(ticker, time):
         # Calculate the step size for perturbation
         step_size = (max_perturbation - base_perturbation) / num_steps
 
+        # Prepare data for DataLoader
+        X_tensor = torch.tensor(X, dtype=torch.float32).reshape((1, lenx, 1)).to(device)
+        Y_tensor = torch.tensor(Y, dtype=torch.float32).to(device)
+        dataset = TensorDataset(X_tensor, Y_tensor)
+        dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+
         # Training loop
         for i in range(num_steps + 1):  # Iterate through the number of steps
             # Calculate the current perturbation
             perturbation = base_perturbation + (i * step_size)
     
-            # Adjust data
-            X_adjusted = torch.tensor(X, dtype=torch.float32).reshape((1, lenx, 1)) + i
-            Y_adjusted = torch.tensor(Y, dtype=torch.float32) + perturbation
+            for X_batch, Y_batch in dataloader:
+                # Adjust data
+                X_adjusted = X_batch + i
+                Y_adjusted = Y_batch + perturbation
     
-            print(f"Training... at step: {i} with perturbation: {perturbation} for ticker: {ticker} with price: {Y_adjusted}")
+                print(f"Training... at step: {i} with perturbation: {perturbation} for ticker: {ticker} with price: {Y_adjusted}")
     
-            # Fit the model with the adjusted data
-            model.train()
-            optimizer.zero_grad()
-            output = model(X_adjusted)
-            loss = criterion(output, Y_adjusted)
-            loss.backward()
-            optimizer.step()
+                # Fit the model with the adjusted data
+                model.train()
+                optimizer.zero_grad()
+                output = model(X_adjusted)
+                loss = criterion(output, Y_adjusted)
+                loss.backward()
+                optimizer.step()
 
     except ValueError as e:
         print(e)
@@ -123,7 +132,8 @@ total_tickers = len(tickers)
 
 current_ticker_number = 0
 
-for ticker in tickers[:2]: # run first 10 tickers because programs fails
+#for ticcker in tickers[:10]: # run first 10 tickers because programs fails
+for ticker in tickers[:100]: # run first 10 tickers because programs fails
     current_ticker_number += 1
     print(f"Processing ticker : {ticker.decode('utf-8')} {current_ticker_number}/{total_tickers}")
     trainticker(ticker.decode('utf-8'), '1y')
@@ -158,7 +168,7 @@ plt.plot(X.flatten())
 plt.show()
 
 lenx = len(X)
-test_input = torch.tensor(X, dtype=torch.float32).reshape((1, lenx, 1))
+test_input = torch.tensor(X, dtype=torch.float32).reshape((1, lenx, 1)).to(device)
 model.eval()
 with torch.no_grad():
     predicted_number = model(test_input).flatten().item()
