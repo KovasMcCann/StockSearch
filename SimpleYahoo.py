@@ -67,7 +67,7 @@ def trainticker(ticker, time):
         lenx = len(X)
 
         # Desired median
-        desired_median = 100
+        #desired_median = 100
 
         # Calculate current median
         current_median = np.median(X)
@@ -110,6 +110,8 @@ def trainticker(ticker, time):
                 Y_adjusted = Y_batch + perturbation
     
                 print(f"Training... at step: {i} with perturbation: {perturbation} for ticker: {ticker} with price: {Y_adjusted}")
+
+                Y_adjusted = Y_adjusted.reshape((1, 1))
     
                 # Fit the model with the adjusted data
                 model.train()
@@ -123,6 +125,21 @@ def trainticker(ticker, time):
         print(e)
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
+#Gather Mean
+
+guessticker = yf.Ticker('lea')
+Y = [] # price now
+
+todays_data = guessticker.history(period='1d', interval='1m')
+Y.append(todays_data['Close'].iloc[-1])
+
+todays_data = guessticker.history(period='5d')  # '1mo' fetches approximately the last 30 days
+X = todays_data['Close'].tolist()
+
+
+# Calculate current median
+desired_median = np.median(X)
 
 r.select(0)
 
@@ -141,6 +158,7 @@ for ticker in tickers[:100]: # run first 10 tickers because programs fails
 # Save the model
 torch.save(model.state_dict(), 'stock_predictor.pth')
 
+"""
 # Demonstrate prediction
 guessticker = yf.Ticker('lea')
 Y = [] # price now
@@ -158,9 +176,10 @@ current_median = np.median(X)
 
 # Calculate the difference
 difference = desired_median - current_median
+"""
 
 # Adjust the array to have the desired median
-X = np.array(X, dtype=np.float32) + difference
+X = np.array(X, dtype=np.float32)
 
 # Plot data
 plt.clf()   
@@ -172,4 +191,5 @@ test_input = torch.tensor(X, dtype=torch.float32).reshape((1, lenx, 1)).to(devic
 model.eval()
 with torch.no_grad():
     predicted_number = model(test_input).flatten().item()
-print(f'Predicted Price: {predicted_number} Actual Price: {Y + difference} Difference: {difference}')
+print(f'--------------------------------------------------------------------')
+print(f'Predicted Price: {predicted_number} Actual Price: {Y}')
