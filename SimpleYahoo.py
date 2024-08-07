@@ -126,7 +126,7 @@ total_tickers = len(tickers)
 
 current_ticker_number = 0
 
-for ticker in tickers[:100]: # run first 10 tickers becase programs fails
+for ticker in tickers[:2]: # run first 10 tickers becase programs fails
     #for ticker in tickers: 
     current_ticker_number += 1
     print(f"Processing ticker : {ticker.decode('utf-8')} {current_ticker_number}/{total_tickers}")
@@ -164,7 +164,7 @@ todays_data = guessticker.history(period='1d', interval='1m')
 Y.append(todays_data['Close'].iloc[-1])
 #print(f'Y: {Y}')
 #X = [] #price previous price
-todays_data = guessticker.history(period='1y')  # '1mo' fetches approximately the last 30 days
+todays_data = guessticker.history(period='5d')  # '1mo' fetches approximately the last 30 days
 X = todays_data['Close'].tolist()
 
 desired_median = 100
@@ -178,8 +178,6 @@ difference = desired_median - current_median
 # Adjust the array to have the desired median
 X = np.array(X, dtype=np.float32) + difference
 
-print(f'Y: {Y}')
-
 # Demonstrate prediction
 
 plt.clf()   
@@ -189,4 +187,4 @@ plt.show()
 lenx = len(X)
 test_input = np.array(X, dtype=np.float32).reshape((1, lenx, 1))
 predicted_number = model.predict(test_input).flatten()[0]
-print(f'Predicted Price: {predicted_number + difference} Actual Price: {Y[0] + difference} Difference: {predicted_number - Y[0]}')
+print(f'Predicted Price: {predicted_number} Actual Price: {Y + difference} Difference: {difference}')
