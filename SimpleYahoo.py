@@ -1,8 +1,8 @@
-#######################################################
-# Name: SimpleYahoo.py                                #
-# Description: simple yahoo and pytorch predictor     #
-# Idea: use yahoo finance to build an ai              #
-#######################################################
+############################################################
+# Name: SimpleYahoo.py                                     #
+# Description: simple yahoo and pytorch predictor          #
+# Idea: use yahoo finance to build an ai (proof of concept)#
+############################################################
 
 import torch
 import torch.nn as nn
