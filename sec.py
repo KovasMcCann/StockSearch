@@ -89,7 +89,7 @@ class Get:
       pipeline.get(ticker)
 
     results = pipeline.execute()
-
+    # need to multiprocess
     for num in results:
       num = num.decode('utf-8')
       #print(num)
