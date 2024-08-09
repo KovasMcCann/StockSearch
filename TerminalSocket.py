@@ -1,5 +1,5 @@
 ###############################################################
-# Name: PriceSocket.py                                        #
+# Name: TerminalSocket.py                                     #
 # Description: Socket to allow you to get data from redis db  # 
 ###############################################################
 
@@ -33,10 +33,13 @@ def builddb(): # will be used as a starting base
     tickers = r.keys('*')
 
     r.select(2) #db 2 will store pirce data 
+    import random #temp
 
     def set_ticker(ticker): #use json for for better qires
-        r.hset(ticker.decode('utf-8'), mapping= { 'last update': '69420',
-                                                'array of values': 'value'})  # Assuming you want to set an empty string as the value
+        r.hset(ticker.decode('utf-8'), mapping= { 
+                                                'last update': 'NULL', #rand int is temp
+                                                'Frequency': 'NULL',
+                                                'Data': 'NULL'})  # Assuming you want to set an empty string as the value
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.map(set_ticker, tickers)
@@ -59,8 +62,8 @@ def updatedb():
     print(text.decode('utf-8'))
 
 #updatedb()
-#builddb()
-print(time.strftime("%Y%m%d%H%M", time.localtime()))
+builddb()
+#print(time.strftime("%Y%m%d%H%M", time.localtime()))
 testsearch()
 
 """
