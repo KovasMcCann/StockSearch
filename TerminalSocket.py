@@ -33,7 +33,6 @@ def builddb(): # will be used as a starting base
     tickers = r.keys('*')
 
     r.select(2) #db 2 will store pirce data 
-    import random #temp
 
     def set_ticker(ticker): #use json for for better qires
         r.hset(ticker.decode('utf-8'), mapping= { 
