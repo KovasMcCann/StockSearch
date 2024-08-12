@@ -9,6 +9,7 @@ import yfinance #back up and to fill in old data
 import pandas
 import pickle
 import random
+import logging
 
 # Redis Config
 redis_host = '10.1.10.131' #will be 127.0.0.1
@@ -78,6 +79,12 @@ def curl(ticker):
 
 def ycurl(ticker):
     print("ERROR: reverting to yfinance") 
+    stock = yfinance.Ticker(ticker)
+    data = stock.history(period='1m')
+    if data.empty:  
+        return 'NULL'
+    else:
+        return data['Open'][0]
     
 def getweeks(firstday, today):
     # Convert the date strings to datetime.date objects
@@ -98,6 +105,8 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
     DB = []
 
     nohalt = True
+
+    logging.getLogger('yfinance').setLevel(logging.CRITICAL)
 
     #Get todays dat
     today = time.strftime("%Y-%m-%d", time.localtime())
@@ -129,7 +138,7 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
         #print(getweeks(firstday, today))
         #get data
         new_date_str = (datetime.strptime(f"{firstday}", "%Y-%m-%d") + timedelta(days=7)).strftime("%Y-%m-%d")
-        print(f'{GREEN}Getting Data From: {firstday} - {new_date_str} for {RESET}{WHITE}[{RESET}{RANDOM()}{ticker}{RESET}{WHITE}]{RESET}')
+        print(f'\r{GREEN}Getting Data From: {firstday} - {new_date_str} for {RESET}{WHITE}[{RESET}{RANDOM()}{ticker}{RESET}{WHITE}]{RESET}', end='')
         
         data = stock.history(start=f'{firstday}',end=f'{new_date_str}', interval='1d')
         if data.empty:
@@ -149,14 +158,17 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
         #print(getweeks(firstday, today))
         #get data
         new_date_str = (datetime.strptime(f"{firstday}", "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
-        print(f'{GREEN}Getting Data From: {firstday} - {new_date_str} for {ticker}{RESET}')
+        print(f'\r{GREEN}Getting Data From: {firstday} - {new_date_str} for {RESET}{WHITE}[{RESET}{RANDOM()}{ticker}{RESET}{WHITE}]{RESET}', end='')
 
         if int(datetime.strptime(new_date_str, "%Y-%m-%d").strftime("%Y%m%d")) > int(datetime.strptime(today, "%Y-%m-%d").strftime("%Y%m%d")):
             break
-        data = stock.history(start=f'{firstday}',end=f'{new_date_str}', interval='1m')
-        print("working on day bassis")
+        try:
+            data = stock.history(start=f'{firstday}',end=f'{new_date_str}', interval='1m')
+        except Exception as e:        
+            print(f'{RED}Error: {e}{RESET}')
+
         if data.empty:
-            print(f'{YELLOW}weekend {new_date_str}{RESET}')
+            print(f'\r{YELLOW}weekend {new_date_str}{RESET}', end='')
         else: 
             for index, row in data.iterrows():
                 #print(index, row)
@@ -182,22 +194,28 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
     print("Data Stored")
 
 def write_ticker(ticker):
-    try: 
-        r.hset(ticker.decode('utf-8'), mapping={
-            'last update':time.strftime("%Y%m%d%H%M", time.localtime()),
-            #'Data': curl(ticker.decode('utf-8') except if curl(ticker.decode('utf-8') is None: print('NULL')
-            'Data':curl(ticker.decode('utf-8'))})
+    if r.hget(ticker, 'Data') == 'Dead':
+        print(f'{BLUE}Dead Stock{RESET}')
+        return
+    data = load(ticker)
+    if data is not None:
+        print(f'{YELLOW}Data Loaded{RESET}')
+        try: 
+            r.hset(ticker, mapping={
+                'last update':time.strftime("%Y%m%d%H%M", time.localtime()),
+                #'Data': curl(ticker.decode('utf-8') except if curl(ticker.decode('utf-8') is None: print('NULL')
+                'Data':curl(ticker)})
 
-    except Exception as e: #this exception will be rasied when server is down 
-        print(f'{e}')
-        r.hset(ticker.decode('utf-8'), mapping={
-            'last update':time.strftime("%Y%m%d%H%M", time.localtime()),
-            #'Data': curl(ticker.decode('utf-8') except if curl(ticker.decode('utf-8') is None: print('NULL')
-            'Data':'NULL'})
-
-"""
-
-"""
+        except Exception as e: #this exception will be rasied when server is down 
+            print(f'{e}')
+            r.hset(ticker, mapping={
+                'last update':time.strftime("%Y%m%d%H%M", time.localtime()),
+                #'Data': curl(ticker.decode('utf-8') except if curl(ticker.decode('utf-8') is None: print('NULL')
+                'Data':'NULL'})
+            return
+    else:
+        print(f'{RED}Data Not Loaded{RESET}')
+        buildarray(ticker) #need to run in a new thread
 
 def load(ticker):
     data = r.hget(f'{ticker}', 'Data')
@@ -219,7 +237,6 @@ def plot(data):
     df['row'] = df['row'].astype(str) 
     df['Open'] = df['row'].str.extract(r'Open\s+([0-9\.e+-]+)')[0].astype(float)
 
-
     # Fi   lter to keep only 'Open' values
     df = df[['index', 'Open']]
     df.set_index('index', inplace=True)
@@ -235,11 +252,11 @@ def plot(data):
     plt.tight_layout()
     plt.show()
 
+#plot(load('aapl'))
 
 tickers = r.keys('*')
 
 for ticker in tickers:
     print(ticker.decode('utf-8'))
+    #write_ticker(ticker.decode('utf-8'))
     buildarray(ticker.decode('utf-8'))
-
-plot(load('aapl'))

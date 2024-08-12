@@ -15,6 +15,22 @@ redis_db = 2  # default database
 redis_password = None  # no password set
 r = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
 
+##### Color Codes #####
+RED = '\033[91m'
+ORANGE = '\033[38;5;208m'
+YELLOW = '\033[93m'
+GREEN = '\033[92m'
+CYAN = '\033[96m'
+BLUE = '\033[94m'
+PURPLE = '\033[95m'
+WHITE = '\033[97m'
+GRAY = '\033[90m'
+BLACK = '\033[30m'
+BROWN = '\033[38;5;52m'
+def RANDOM():
+    return f'\033[38;5;{random.randint(0,255)}m'
+RESET = '\033[0m'
+
 # Define holidays and non-working days
 holidays = [
     (1, 1),  # January 1
@@ -32,7 +48,7 @@ holidays = [
 def is_holiday(date):
     return (date.month, date.day) in holidays
 def time_range(current_time): 
-    return current_time < 1000 or current_time > 1500 # for chicago time
+    return current_time < 1000 or current_time > 1459 # for chicago time
     #return current_time < 900 or current_time > 1600 # for new york time
 
 def is_weekend(date):
@@ -52,13 +68,13 @@ def main():
         display_time = now.strftime("%H:%M %m/%d/%Y")
 
         if is_holiday(now):
-            print(f'[{display_time}] Market Closed: Holiday') #need to add partial holidays
+            print(f'[{display_time}] {RED}Market Closed: Holiday{RESET}') #need to add partial holidays
         elif is_weekend(day):
-            print(f'[{display_time}] Market Closed: Weekend')
+            print(f'[{display_time}] {RED}Market Closed: Weekend{RESET}')
         elif time_range(current_time):
-            print(f'[{display_time}] Market Closed')
+            print(f'[{display_time}] {YELLOW}Market Closed{RESET}')
         else:
-            print(f'[{display_time}] Market Open')
+            print(f'[{display_time}] {GREEN}Market Open{RESET}')
             #Start storing data
 
         # Sleep to prevent excessive CPU usage
