@@ -1,7 +1,6 @@
 from datetime import datetime
 import time
 
-
 import requests
 import asyncio
 #redis config
@@ -48,8 +47,8 @@ holidays = [
 def is_holiday(date):
     return (date.month, date.day) in holidays
 def time_range(current_time): 
-    return current_time < 1000 or current_time > 1459 # for chicago time
-    #return current_time < 900 or current_time > 1600 # for new york time
+    return current_time < 800 or current_time > 1459 # for chicago time
+    #return current_time < 900 or current_time > 1559 # for new york time
 
 def is_weekend(date):
     return date >= 5
@@ -82,4 +81,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -10,6 +10,7 @@ import pandas
 import pickle
 import random
 import logging
+import matplotlib.pyplot as plt
 
 # Redis Config
 redis_host = '10.1.10.131' #will be 127.0.0.1
@@ -55,17 +56,6 @@ def builddb(): # will be used as a starting base
     with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.map(set_ticker, tickers)
 ################################
-
-"""
-import asyncio
-
-async def main():
-    print('Hello ...')
-    await asyncio.sleep(1)
-    print('... World!')
-
-asyncio.run(main())
-"""
 
 def curl(ticker):
     url = f'https://generic709.herokuapp.com/stockc/{ticker}'
@@ -193,30 +183,6 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
 
     print("Data Stored")
 
-def write_ticker(ticker):
-    if r.hget(ticker, 'Data') == 'Dead':
-        print(f'{BLUE}Dead Stock{RESET}')
-        return
-    data = load(ticker)
-    if data is not None:
-        print(f'{YELLOW}Data Loaded{RESET}')
-        try: 
-            r.hset(ticker, mapping={
-                'last update':time.strftime("%Y%m%d%H%M", time.localtime()),
-                #'Data': curl(ticker.decode('utf-8') except if curl(ticker.decode('utf-8') is None: print('NULL')
-                'Data':curl(ticker)})
-
-        except Exception as e: #this exception will be rasied when server is down 
-            print(f'{e}')
-            r.hset(ticker, mapping={
-                'last update':time.strftime("%Y%m%d%H%M", time.localtime()),
-                #'Data': curl(ticker.decode('utf-8') except if curl(ticker.decode('utf-8') is None: print('NULL')
-                'Data':'NULL'})
-            return
-    else:
-        print(f'{RED}Data Not Loaded{RESET}')
-        buildarray(ticker) #need to run in a new thread
-
 def load(ticker):
     data = r.hget(f'{ticker}', 'Data')
     if data:
@@ -225,11 +191,36 @@ def load(ticker):
             data = pickle.loads(data)
         except (pickle.UnpicklingError, TypeError) as e:
             # Handle errors and log them
-            print(f"{RED}Error during unpickling: {e}{RESET}")
+            print(f"Error during unpickling: {e}")
             data = None
     return data
 
-import matplotlib.pyplot as plt
+def write_ticker(ticker):
+    if r.hget(ticker, 'Data') == 'Dead':
+        print(f'{BLUE}Dead Stock{RESET} [{ticker}]')
+        return
+    data = load(ticker)
+    if data is not None:
+        print(f'{YELLOW}Data Loaded{RESET}')
+        try: 
+            r.hset(ticker, mapping={
+                'last update':time.strftime("%Y%m%d%H%M", time.localtime()),
+                #'Data': curl(ticker.decode('utf-8') except if curl(ticker.decode('utf-8') is None: print('NULL')
+                #apend data
+                'Data':pickle.dumps(pandas.concat([data, yfinance.Ticker(ticker).history(period='1d')]).drop_duplicates()) })
+                #'Data':curl(ticker)})
+
+        except Exception as e: #this exception will be rasied when server is down 
+            print(f'{e} for {ticker}')
+            return
+    else:
+        print(f'{RED}Data Not Loaded{RESET}')
+        buildarray(ticker) #need to run in a new thread
+
+buildarray('aapl')
+
+write_ticker('aapl')
+
 def plot(data):
     df = pandas.DataFrame(data)
 
@@ -240,6 +231,8 @@ def plot(data):
     # Fi   lter to keep only 'Open' values
     df = df[['index', 'Open']]
     df.set_index('index', inplace=True)
+
+    df = df[df.index.year == 2024]
 
     # Plotting
     plt.figure(figsize=(12, 6))
@@ -252,11 +245,13 @@ def plot(data):
     plt.tight_layout()
     plt.show()
 
-#plot(load('aapl'))
+plot(load('aapl'))
 
+"""
 tickers = r.keys('*')
 
 for ticker in tickers:
     print(ticker.decode('utf-8'))
-    #write_ticker(ticker.decode('utf-8'))
-    buildarray(ticker.decode('utf-8'))
+    write_ticker(ticker.decode('utf-8'))
+    #buildarray(ticker.decode('utf-8'))
+"""
