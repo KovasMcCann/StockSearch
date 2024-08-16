@@ -181,8 +181,6 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
         'Data': steralized
     })
 
-    print("Data Stored")
-"""
 def load(ticker):
     data = r.hget(f'{ticker}', 'Data')
     if data:
@@ -191,106 +189,36 @@ def load(ticker):
             data = pickle.loads(data)
         except (pickle.UnpicklingError, TypeError) as e:
             # Handle errors and log them
-            print(f"Error during unpickling: {e}")
+            print(f"{RED}Error during unpickling: {e}{RESET}")
             data = None
     return data
 
 def write_ticker(ticker):
-    if r.hget(ticker, 'Data') == 'Dead':
-        print(f'{BLUE}Dead Stock{RESET} [{ticker}]')
-        return
-    #data = pandas.DataFrame(load(ticker), columns=['index', 'row']) #load in data
-    data = load(ticker)
-
-    if data is not None:
-        print(f'{YELLOW}Data Loaded{RESET}')
-        try:
-            # Retrieve the latest data from yfinance
-            latest_data = yfinance.Ticker(ticker).history(period='1d', interval='1m')
-
-            if not latest_data.empty:
-                # Ensure the index is correctly named and reset
-                latest_data.index.name = 'index'
-                latest_data = latest_data.reset_index()
-
-                # Process old data
-                if 'row' in data.columns and 'index' in data.columns:
-                    data = data.set_index('index')  # Set the index
-                    data = data.pivot(columns='row', values='row')  # Pivot the DataFrame
-
-                # Ensure the new data is in the same format as the old data
-                latest_data = latest_data[['Datetime', 'Open']]  # Adjust as needed
-
-                # Concatenate existing data with the latest data and drop duplicates
-                updated_data = pandas.concat([data, latest_data], ignore_index=True).drop_duplicates().reset_index(drop=True)
-
-                # Debug: Print the first few rows of updated_data
-                print("Updated Data:")
-                print(updated_data.head())
-
-                # Serialize the updated DataFrame
-                serialized_data = pickle.dumps(updated_data)
-
-                # Update Redis with the new data
-                r.hset(ticker, mapping={
-                    'last update': time.strftime("%Y%m%d%H%M", time.localtime()),
-                    'Data': serialized_data
-                })
-                print("Data Stored")
-
-            else:
-                print(f'{YELLOW}No new data for {ticker}{RESET}')
-
-        except Exception as e:
-            print(f'{RED}Error: {e}{RESET} for {ticker}')
-            return
-    else:
-        print(f'{RED}Data Not Loaded{RESET}')
-        buildarray(ticker)
-"""
-def load(ticker):
-    data = r.hget(ticker, 'Data')
-    if data:
-        try:
-            data = pickle.loads(data)
-            data['index'] = pandas.to_datetime(data['index'])
-            data = data[data['row'].str.contains('Open|High|Low|Close|Volume|Dividends|Stock Splits', na=False)]
-            data = data.pivot_table(index='index', columns='row', values='row')
-            data.columns.name = None
-            data.reset_index(inplace=True)
-            return data
-        except (pickle.UnpicklingError, TypeError) as e:
-            print(f"Error during unpickling: {e}")
-            return None
-    return None
-
-def write_ticker(ticker):
-    if r.hget(ticker, 'Data') == 'Dead':
+    print(r.hget(ticker, 'Data'))
+    if r.hget(ticker, 'Data').decode('utf-8') == 'Dead':
         print(f'Dead Stock [{ticker}]')
         return
 
     # Load existing data from Redis
     old_data = load(ticker)
-
     if old_data is not None:
         print('Data Loaded')
-        try:
+        #try:
+        if True:
             # Retrieve the latest data from yfinance
+
+            old_data = pandas.DataFrame(old_data, columns=['index', 'row'])  # Convert list to DataFrame if needed
             new_data = yfinance.Ticker(ticker).history(period='1d', interval='1m')
-
+            db = []
+            for index, row in new_data.iterrows():
+                db.append((index, row))
+            new_data = pandas.DataFrame(db, columns=['index', 'row'])
+            old_data = old_data.applymap(lambda x: str(x) if isinstance(x, (list, pandas.Series)) else x)
+            new_data = new_data.applymap(lambda x: str(x) if isinstance(x, (list, pandas.Series)) else x)
+            old_data.reset_index(drop=True, inplace=True)
+            new_data.reset_index(inplace=True)
             if not new_data.empty:
-                new_data = new_data.reset_index()
-                new_data.rename(columns={'Datetime': 'index'}, inplace=True)
-                
-                # Ensure only relevant columns are kept and convert to the expected format
-                new_data = new_data[['index', 'Open']]
-
-                # Convert old_data to the same format as new_data
-                if 'Open' in old_data.columns:
-                    old_data = old_data[['index', 'Open']]
-
-                # Combine old data and new data
-                combined_data = pandas.concat([old_data, new_data]).drop_duplicates().reset_index(drop=True)
+                combined_data = pandas.concat([old_data, new_data]).drop_duplicates()
                 
                 # Serialize the updated DataFrame
                 serialized_data = pickle.dumps(combined_data)
@@ -303,31 +231,27 @@ def write_ticker(ticker):
                 print("Data Stored")
             else:
                 print(f'No new data for {ticker}')
+        """
         except Exception as e:
             print(f'Error: {e} for {ticker}')
+        """
     else:
         print('Data Not Loaded')
         # Optionally rebuild the data
         # buildarray(ticker)
 
-
-buildarray('aapl')
-
-write_ticker('aapl')
+#write_ticker('aapl')
 
 def plot(data):
-    print("Plotting")
     df = pandas.DataFrame(data)
 
     # Convert 'index' to datetime and 'row' to the actual values
     df['row'] = df['row'].astype(str) 
     df['Open'] = df['row'].str.extract(r'Open\s+([0-9\.e+-]+)')[0].astype(float)
 
-    # Filter to keep only 'Open' values
+    # Fi   lter to keep only 'Open' values
     df = df[['index', 'Open']]
     df.set_index('index', inplace=True)
-
-    df = df[(df.index.year == 2024)&(df.index.month == 8)] #filtering can be removed
 
     # Plotting
     plt.figure(figsize=(12, 6))
@@ -340,20 +264,19 @@ def plot(data):
     plt.tight_layout()
     plt.show()
 
-"""
-with open('DataFrame.csv', 'w') as f:
-    df = load('aapl')
-    df.to_csv(f, index=False)
-    print("Data Exported")
-"""
 
-plot(load('aapl'))
+#print(load('aapl'))
 
-"""
+#buildarray('aapl')
+
+#write_ticker('aapl')
+
+
+#plot(load('aapl'))
+
 tickers = r.keys('*')
 
 for ticker in tickers:
     print(ticker.decode('utf-8'))
     write_ticker(ticker.decode('utf-8'))
     #buildarray(ticker.decode('utf-8'))
-"""
