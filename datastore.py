@@ -194,10 +194,13 @@ def load(ticker):
     return data
 
 def write_ticker(ticker):
-    print(r.hget(ticker, 'Data'))
-    if r.hget(ticker, 'Data').decode('utf-8') == 'Dead':
-        print(f'Dead Stock [{ticker}]')
-        return
+    #print(r.hget(ticker, 'Data'))
+    try:
+        if r.hget(ticker, 'Data').decode('utf-8') == 'Dead':
+            print(f'Dead Stock [{ticker}]')
+            return
+    except:
+        pass
 
     # Load existing data from Redis
     old_data = load(ticker)
@@ -263,16 +266,6 @@ def plot(data):
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
-
-
-#print(load('aapl'))
-
-#buildarray('aapl')
-
-#write_ticker('aapl')
-
-
-#plot(load('aapl'))
 
 tickers = r.keys('*')
 
