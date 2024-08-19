@@ -1,9 +1,12 @@
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
+#from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
-import time
+#import redis
+import aioredis
+#import time
 import random
 import sys
+import os
 
 ##### Color Codes #####
 RED = '\033[91m'
@@ -20,6 +23,15 @@ BROWN = '\033[38;5;52m'
 def RANDOM():
     return f'\033[38;5;{random.randint(0,255)}m'
 RESET = '\033[0m'
+
+"""
+#Redis Config
+redis_host = '10.1.10.131' #will be 127.0.0.1
+redis_port = 6379
+redis_db = 2  # default database
+redis_password = None  # no password set
+r = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
+"""
 
 def printtop(message):
     sys.stdout.write(f'\033[F\033[K{message}\n')
@@ -84,52 +96,39 @@ class MarketOpen:
         (12, 25) # December 25 
     ]
 
-# Define CPU-bound task function
-def cpu_bound_task(x):
-    result = 0
-    for i in range(x):
-        result += i * i
-    return result
+def printtop(message):
+    sys.stdout.write(f'\033[F\033[K{message}\n')
+    sys.stdout.flush()
 
-# Function to run CPU-bound tasks in parallel
-def run_cpu_bound_tasks(data):
-    with ProcessPoolExecutor() as executor:
-        results = list(executor.map(cpu_bound_task, data))
-    return results
+# Create a Redis client
+r = aioredis.from_url("redis://10.1.10.131")
 
-async def run_cpu_bound_tasks_async(data):
-    loop = asyncio.get_running_loop()
-    # Run CPU-bound tasks using ProcessPoolExecutor
-    with ProcessPoolExecutor() as executor:
-        results = await loop.run_in_executor(executor, run_cpu_bound_tasks, data)
-    return results
-
-async def async_io_bound_task():
+# Define the asynchronous task
+async def run_task(ticker):
+    print(f"running {ticker.decode('utf-8')}")
     await asyncio.sleep(1)
-    return "I/O Task Complete"
 
-
+# Define the main function
 async def main():
-    while True:
-        if MarketOpen.status() == "CLOSED":
-            #if MarketOpen.status() == "OPEN": #for testing
-            printtop("Market is closed.")
-            time.sleep(next_minute())
-            
-        else:
-            printtop("Market is open. Running tasks...")
+    # Get the number of CPU cores
+    num_cores = os.cpu_count()
+    # Create a semaphore with the number of cores
+    semaphore = asyncio.Semaphore(num_cores)
 
-            # Run I/O-bound tasks
-            io_result = await async_io_bound_task()
-            printtop(io_result)
+    # Get all keys from Redis
+    keys = await r.keys('*')
 
-            # Prepare data for CPU-bound tasks
-            data = [1000000, 2000000, 3000000]
+    # Define a function to run tasks with semaphore
+    async def sem_task(ticker):
+        async with semaphore:
+            await run_task(ticker)
 
-            # Run CPU-bound tasks in parallel
-            cpu_results = await run_cpu_bound_tasks_async(data)
-            printtop(f"CPU tasks results:{cpu_results}")
-            time.sleep(next_minute())
+    # Create a list of tasks
+    tasks = [sem_task(ticker) for ticker in keys]
 
-# Execute the main async function
-asyncio.run(main())
+    # Run tasks concurrently
+    await asyncio.gather(*tasks)
+
+# Run the main function
+if __name__ == "__main__":
+    asyncio.run(main())

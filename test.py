@@ -1,7 +1,7 @@
-#imports
+import asyncio
+import aioredis
 import requests
 import asyncio
-import aiohttp
 import redis
 import time
 from datetime import datetime, timedelta
@@ -10,8 +10,12 @@ import pandas
 import pickle
 import random
 import logging
-import matplotlib.pyplot as plt
 
+t = aioredis.from_url("redis://10.1.10.131", db=0)
+p = aioredis.from_url("redis://10.1.10.131", db=2)
+
+##############################################
+#imports
 # Redis Config
 redis_host = '10.1.10.131' #will be 127.0.0.1
 redis_port = 6379
@@ -34,28 +38,6 @@ BROWN = '\033[38;5;52m'
 def RANDOM():
     return f'\033[38;5;{random.randint(0,255)}m'
 RESET = '\033[0m'
-
-
-################################
-import concurrent.futures
-def builddb(): # will be used as a starting base 
-
-    r.select(0)
-
-    tickers = r.keys('*')
-
-    r.select(2) #db 2 will store pirce data 
-    import random #temp
-
-    def set_ticker(ticker): #use json for for better qires
-        r.hset(ticker.decode('utf-8'), mapping= { 
-                                                'last update': 'NULL', #rand int is temp
-                                                'Frequency': 'NULL',
-                                                'Data': 'NULL'})  # Assuming you want to set an empty string as the value
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(set_ticker, tickers)
-################################
 
 def curl(ticker):
     url = f'https://generic709.herokuapp.com/stockc/{ticker}'
@@ -91,16 +73,11 @@ def getweeks(firstday, today):
 
 def buildarray(ticker): #builds the array of the stock in 1 day intervals
     stock = yfinance.Ticker(ticker)
-
     DB = []
-
     nohalt = True
-
     logging.getLogger('yfinance').setLevel(logging.CRITICAL)
-
     #Get todays dat
     today = time.strftime("%Y-%m-%d", time.localtime())
-    
     #Get the first day of stock
     data = stock.history(start='1069-04-20',end=f'{today}', interval='1d') #start data is very old to get last data
     if data.empty:
@@ -111,7 +88,6 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
             'Data': 'Dead'
         })
         print(f"{BLUE}Data Stored as Dead{RESET}")
-
         return
 
     firstday = time.strftime('%Y-%m-%d', time.strptime(str(data.index[0]).split()[0], '%Y-%m-%d'))
@@ -181,99 +157,47 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
         'Data': steralized
     })
 
-def load(ticker):
-    data = r.hget(f'{ticker}', 'Data')
-    if data:
-        try:
-            # Deserialize DataFrame from binary data
-            data = pickle.loads(data)
-        except (pickle.UnpicklingError, TypeError) as e:
-            # Handle errors and log them
-            print(f"{RED}Error during unpickling: {e}{RESET}")
-            data = None
-    return data
+##############################################
 
-def write_ticker(ticker):
-    #print(r.hget(ticker, 'Data'))
-    try:
-        if r.hget(ticker, 'Data').decode('utf-8') == 'Dead':
-            print(f'Dead Stock [{ticker}]')
-            return
-    except:
-        pass
+import asyncio
+import os
+from concurrent.futures import ThreadPoolExecutor
 
-    # Load existing data from Redis
-    old_data = load(ticker)
-    if old_data is not None:
-        print('Data Loaded')
-        #try:
-        if True:
-            # Retrieve the latest data from yfinance
+# Mock function to simulate some processing
+#def buildarray(ticker):
+#    import time
+#    time.sleep(1)  # Simulate a blocking operation
+#    print(f"Processed {ticker}")
 
-            old_data = pandas.DataFrame(old_data, columns=['index', 'row'])  # Convert list to DataFrame if needed
-            new_data = yfinance.Ticker(ticker).history(period='1d', interval='1m')
-            db = []
-            for index, row in new_data.iterrows():
-                db.append((index, row))
-            new_data = pandas.DataFrame(db, columns=['index', 'row'])
-            old_data = old_data.applymap(lambda x: str(x) if isinstance(x, (list, pandas.Series)) else x)
-            new_data = new_data.applymap(lambda x: str(x) if isinstance(x, (list, pandas.Series)) else x)
-            old_data.reset_index(drop=True, inplace=True)
-            new_data.reset_index(inplace=True)
-            if not new_data.empty:
-                combined_data = pandas.concat([old_data, new_data]).drop_duplicates()
-                
-                # Serialize the updated DataFrame
-                serialized_data = pickle.dumps(combined_data)
-                
-                # Update Redis with the new data
-                r.hset(ticker, mapping={
-                    'last update': time.strftime("%Y%m%d%H%M", time.localtime()),
-                    'Data': serialized_data
-                })
-                print("Data Stored")
-            else:
-                print(f'No new data for {ticker}')
-        """
-        except Exception as e:
-            print(f'Error: {e} for {ticker}')
-        """
-    else:
-        print('Data Not Loaded')
-        # Optionally rebuild the data
-        # buildarray(ticker)
+# Define the asynchronous task
+async def run_task(ticker, executor):
+    print(f"running {ticker}")
+    # Run the blocking function in a separate thread
+    await asyncio.get_event_loop().run_in_executor(executor, buildarray, ticker)
 
-#write_ticker('aapl')
+import aioredis
 
-def plot(data):
-    df = pandas.DataFrame(data)
+r = aioredis.from_url("redis://10.1.10.131")
 
-    # Convert 'index' to datetime and 'row' to the actual values
-    df['row'] = df['row'].astype(str) 
-    df['Open'] = df['row'].str.extract(r'Open\s+([0-9\.e+-]+)')[0].astype(float)
+# Define the main function
+async def main():
+    #keys = ['AAPL', 'TSLA', 'GOOGL', 'AMZN', 'MSFT', 'FB', 'NVDA', 'INTC', 'AMD', 'CSCO']
+    
+    keys = await r.keys('*')
+    keys = [key.decode('utf-8') for key in keys]
+    
+    # Get the number of CPU cores
+    num_cores = os.cpu_count()
+    
+    # Create a ThreadPoolExecutor with the number of CPU cores
+    with ThreadPoolExecutor(max_workers=num_cores) as executor:
+        # Create a list of tasks
 
-    # Fi   lter to keep only 'Open' values
-    df = df[['index', 'Open']]
-    df.set_index('index', inplace=True)
+        tasks = [run_task(ticker, executor) for ticker in keys]
 
-    # Plotting
-    plt.figure(figsize=(12, 6))
-    plt.plot(df.index, df['Open'], marker='o', linestyle='-', color='b')
-    plt.title('Open Prices Over Time')
-    plt.xlabel('Date')
-    plt.ylabel('Open Price')
-    plt.grid(True)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
+        # Run tasks concurrently
+        await asyncio.gather(*tasks)
 
-builddb()
-
-plot(load('AAPL'))
-
-tickers = r.keys('*')
-
-for ticker in tickers:
-    print(ticker.decode('utf-8'))
-    #write_ticker(ticker.decode('utf-8'))
-    buildarray(ticker.decode('utf-8'))
+# Run the main function
+if __name__ == "__main__":
+    asyncio.run(main())
