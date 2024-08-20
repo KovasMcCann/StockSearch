@@ -171,6 +171,10 @@ Get.buildlnkDB()
 Get.gethistory('AAPL')
 Get.gethistory('TSLA')
 
+"""
+********* Need to add "files" (old data) *********
+"""
+
 """ 
 Proper output.json links to the SEC website for the company's filings.
 https://www.sec.gov/Archives/edgar/data/xslF345X05/0000320193-24-000075-index.html

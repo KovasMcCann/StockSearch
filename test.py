@@ -71,7 +71,7 @@ def getweeks(firstday, today):
     
     return weeks
 
-def buildarray(ticker): #builds the array of the stock in 1 day intervals
+async def buildarray(ticker): #builds the array of the stock in 1 day intervals
     stock = yfinance.Ticker(ticker)
     DB = []
     nohalt = True
@@ -83,7 +83,7 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
     if data.empty:
         print(f'{BLUE}NO DATA {ticker}{RESET}')
         nohalt = False
-        r.hset(f'{ticker}', mapping={
+        await r.hset(f'{ticker}', mapping={
             'last update':time.strftime("%Y%m%d%H%M", time.localtime()), 
             'Data': 'Dead'
         })
@@ -152,10 +152,17 @@ def buildarray(ticker): #builds the array of the stock in 1 day intervals
 
     steralized = pickle.dumps(DB_df)
 
+    await r.hset(f'{ticker}', mapping={
+        'last update':time.strftime("%Y%m%d%H%M", time.localtime()), 
+        'Data': steralized
+    })
+
+    """
     r.hset(f'{ticker}', mapping={
         'last update':time.strftime("%Y%m%d%H%M", time.localtime()), 
         'Data': steralized
     })
+    """
 
 ##############################################
 
@@ -173,7 +180,7 @@ from concurrent.futures import ThreadPoolExecutor
 async def run_task(ticker, executor):
     print(f"running {ticker}")
     # Run the blocking function in a separate thread
-    await asyncio.get_event_loop().run_in_executor(executor, buildarray, ticker)
+    await asyncio.get_event_loop().run_in_executor(executor, lambda: asyncio.run(buildarray(ticker)))
 
 import aioredis
 
@@ -182,21 +189,20 @@ r = aioredis.from_url("redis://10.1.10.131")
 # Define the main function
 async def main():
     #keys = ['AAPL', 'TSLA', 'GOOGL', 'AMZN', 'MSFT', 'FB', 'NVDA', 'INTC', 'AMD', 'CSCO']
+    try:
     
-    keys = await r.keys('*')
-    keys = [key.decode('utf-8') for key in keys]
+        keys = await r.keys('*')
+        keys = [key.decode('utf-8') for key in keys]
     
-    # Get the number of CPU cores
-    num_cores = os.cpu_count()
+        # Get the number of CPU cores
+        num_cores = os.cpu_count() or 1 
     
-    # Create a ThreadPoolExecutor with the number of CPU cores
-    with ThreadPoolExecutor(max_workers=num_cores) as executor:
-        # Create a list of tasks
-
-        tasks = [run_task(ticker, executor) for ticker in keys]
-
-        # Run tasks concurrently
-        await asyncio.gather(*tasks)
+        # Create a ThreadPoolExecutor with the number of CPU cores
+        with ThreadPoolExecutor(max_workers=num_cores * 2) as executor:
+            tasks = [run_task(ticker, executor) for ticker in keys]
+            await asyncio.gather(*tasks)
+    finally:
+        await r.close()
 
 # Run the main function
 if __name__ == "__main__":
