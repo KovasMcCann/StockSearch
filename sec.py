@@ -10,7 +10,8 @@ import redis
 import yfinance as yf
 
 #redis config 
-redis_host = '10.1.10.131'
+#redis_host = '10.1.10.131'
+redis_host = '10.1.10.121'
 redis_port = 6379
 redis_db = 0  # default database
 redis_password = None  # no password set

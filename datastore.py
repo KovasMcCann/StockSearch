@@ -13,7 +13,8 @@ import logging
 import matplotlib.pyplot as plt
 
 # Redis Config
-redis_host = '10.1.10.131' #will be 127.0.0.1
+#redis_host = '10.1.10.131' #will be 127.0.0.1
+redis_host = '10.1.10.121' #will be 127.0.0.1
 redis_port = 6379
 redis_db = 2  # default database
 redis_password = None  # no password set
@@ -267,13 +268,40 @@ def plot(data):
     plt.tight_layout()
     plt.show()
 
-builddb()
+#builddb()
 
-plot(load('AAPL'))
+#plot(load('AAPL'))
 
+"""
 tickers = r.keys('*')
 
 for ticker in tickers:
     print(ticker.decode('utf-8'))
     #write_ticker(ticker.decode('utf-8'))
     buildarray(ticker.decode('utf-8'))
+"""
+
+import concurrent.futures
+import os
+
+# Function to process each ticker
+def process_ticker(ticker):
+    ticker_str = ticker.decode('utf-8')
+    print(ticker_str)
+    # Uncomment the next line if you need to write the ticker
+    # write_ticker(ticker_str)
+    buildarray(ticker_str)
+
+def main():
+    tickers = r.keys('*')
+
+    # Get the number of CPU cores
+    num_threads = os.cpu_count()
+
+    # Use ThreadPoolExecutor to manage threads
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+        # Map the process_ticker function to the tickers list
+        executor.map(process_ticker, tickers)
+
+if __name__ == "__main__":
+    main()

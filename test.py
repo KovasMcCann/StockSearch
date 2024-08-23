@@ -11,13 +11,17 @@ import pickle
 import random
 import logging
 
-t = aioredis.from_url("redis://10.1.10.131", db=0)
-p = aioredis.from_url("redis://10.1.10.131", db=2)
+#t = aioredis.from_url("redis://10.1.10.131", db=0)
+#p = aioredis.from_url("redis://10.1.10.131", db=2)
+
+t = aioredis.from_url("redis://10.1.10.121", db=0, socket_timeout=10 )
+p = aioredis.from_url("redis://10.1.10.121", db=2, socket_timeout=10 )
 
 ##############################################
 #imports
 # Redis Config
-redis_host = '10.1.10.131' #will be 127.0.0.1
+#redis_host = '10.1.10.131' #will be 127.0.0.1
+redis_host = '10.1.10.121' #will be 127.0.0.1
 redis_port = 6379
 redis_db = 2  # default database
 redis_password = None  # no password set
@@ -71,7 +75,10 @@ def getweeks(firstday, today):
     
     return weeks
 
+import bz2
+
 async def buildarray(ticker): #builds the array of the stock in 1 day intervals
+    """ 
     stock = yfinance.Ticker(ticker)
     DB = []
     nohalt = True
@@ -89,6 +96,26 @@ async def buildarray(ticker): #builds the array of the stock in 1 day intervals
         })
         print(f"{BLUE}Data Stored as Dead{RESET}")
         return
+    """
+
+    stock = yfinance.Ticker(ticker)
+    DB = []
+    nohalt = True
+    logging.getLogger('yfinance').setLevel(logging.CRITICAL)
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    data = await stock.history(start='1069-04-20', end=f'{today}', interval='1d')
+    if data.empty:
+        print(f'{BLUE}NO DATA {ticker}{RESET}')
+        nohalt = False
+        await r.hset(f'{ticker}', mapping={
+            'last update': time.strftime("%Y%m%d%H%M", time.localtime()), 
+            'Data': 'Dead'
+        })
+        print(f"{BLUE}Data Stored as Dead{RESET}")
+        return
+
+    # Continue with the rest of the code...
+
 
     firstday = time.strftime('%Y-%m-%d', time.strptime(str(data.index[0]).split()[0], '%Y-%m-%d'))
     #print(getweeks(firstday, today))
@@ -145,14 +172,16 @@ async def buildarray(ticker): #builds the array of the stock in 1 day intervals
         tick += 1
     
     #print(f'{tick} / {total}')
-    print('exporting to redis')
+    print('exporting to redis', ticker)
     DB_df = pandas.DataFrame(DB, columns=['index', 'row'])  # Convert list to DataFrame if needed
     
     #Data = buildarray(ticker)
 
     steralized = pickle.dumps(DB_df)
 
-    await r.hset(f'{ticker}', mapping={
+    steralized = bz2.compress(steralized)
+
+    await p.hset(f'{ticker}', mapping={
         'last update':time.strftime("%Y%m%d%H%M", time.localtime()), 
         'Data': steralized
     })
@@ -178,13 +207,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 # Define the asynchronous task
 async def run_task(ticker, executor):
-    print(f"running {ticker}")
-    # Run the blocking function in a separate thread
+    print(f"Loading: {ticker}")
     await asyncio.get_event_loop().run_in_executor(executor, lambda: asyncio.run(buildarray(ticker)))
 
 import aioredis
 
-r = aioredis.from_url("redis://10.1.10.131")
+#r = aioredis.from_url("redis://10.1.10.131")
+r = aioredis.from_url("redis://10.1.10.121")
 
 # Define the main function
 async def main():
