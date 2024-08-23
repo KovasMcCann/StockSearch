@@ -7,10 +7,8 @@
 
 
 ### TODO 📋
-- **How to** submit stock market transactions
+- **Add** alpaca paper trading interface [alpaca.markets](alpaca)
 - Implement [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag) and [alpaca.markets](https://alpaca.markets)
-- learn how to train AI models
-    - Do I need a hidden layer
 
 ### Resources
 - For SEC form guide: [Link](sec.md)
@@ -26,3 +24,6 @@
 
 ### LICENSE 📖
 - **For comercial use please contact Kovas McCann**
+
+
+<!-- [image](github.com/4f4QdN2G~/p:g!UDYP)>] -->
