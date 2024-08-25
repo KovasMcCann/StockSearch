@@ -5,6 +5,9 @@
 |----------|------------------------------------------|
 |![Screenshot from 2024-07-08 15-26-28](https://github.com/KovasMcCann/StockSearch/assets/44278533/81248cee-5382-4846-8611-f4c42c178c09) |![image](https://github.com/user-attachments/assets/c101e62d-f064-4c4b-a133-67f2f62e3585)|
 
+### thin
+think about 350 arb, weekend arb (arbitrage)
+
 
 ### TODO 📋
 - **Add** alpaca paper trading interface [alpaca.markets](alpaca)
@@ -23,7 +26,7 @@
 - Mathematics of money management
 
 ### LICENSE 📖
-- **For comercial use please contact Kovas McCann**
+- **For commercial use please contact Kovas McCann**
 
 
 <!-- [image](github.com/4f4QdN2G~/p:g!UDYP)>] -->
