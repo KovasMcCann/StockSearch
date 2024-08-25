@@ -283,70 +283,78 @@ for ticker in tickers:
 from datetime import datetime
 import time
 
-# Define holidays and non-working days
-holidays = [
-    (1, 1),  # January 1
-    (1, 15), # January 15 (MLK Day varies)
-    (2, 19), # February 19 Washington Birthday varies)
-    (3, 29), # March 29 (Good Friday varies)
-    (5, 27), # May 27 (Memorial Day varies)
-    (6, 19), # June 19 (Juneteenth)
-    (9, 2),  # September 2 (Labor Day varies)
-    (7, 4),  # July 4
-    (11, 28),# November 28 (Thanksgiving varies)
-    (12, 25) # December 25
-]
+class MarketStatus:
+    # Define holidays and non-working days
+    holidays = [
+        (1, 1),  # January 1
+        (1, 15), # January 15 (MLK Day varies)
+        (2, 19), # February 19 Washington Birthday varies)
+        (3, 29), # March 29 (Good Friday varies)
+        (5, 27), # May 27 (Memorial Day varies)
+        (6, 19), # June 19 (Juneteenth)
+        (9, 2),  # September 2 (Labor Day varies)
+        (7, 4),  # July 4
+        (11, 28),# November 28 (Thanksgiving varies)
+        (12, 25) # December 25
+    ]
+    @staticmethod
+    def is_holiday(date):
+        return (date.month, date.day) in MarketStatus.holidays
+    
+    @staticmethod
+    def time_range(current_time): 
+        return current_time < 800 or current_time > 1459 # for chicago time
+        #return current_time < 900 or current_time > 1559 # for new york time
 
-def is_holiday(date):
-    return (date.month, date.day) in holidays
-def time_range(current_time): 
-    return current_time < 800 or current_time > 1459 # for chicago time
-    #return current_time < 900 or current_time > 1559 # for new york time
+    @staticmethod   
+    def is_weekend(date):
+        return date >= 5
 
-def is_weekend(date):
-    return date >= 5
+    @staticmethod
+    def next_minute():
+        now = datetime.now()
+        current = now.strftime("%S")
+        return 60 - int(current)
 
-def next_minute():
-    now = datetime.now()
-    current = now.strftime("%S")
-    return 60 - int(current)
-
-def main():
-    while True:
+    @staticmethod
+    def check():
         now = datetime.now()
         day = now.weekday()
         #day = int(6)
         current_time = int(now.strftime("%H%M"))
         display_time = now.strftime("%H:%M %m/%d/%Y")
 
-        if is_holiday(now):
+        if MarketStatus.is_holiday(now):
             print(f'[{display_time}] {RED}Market Closed: Holiday{RESET}') #need to add partial holidays
-        elif is_weekend(day):
+            return "Closed"
+        elif MarketStatus.is_weekend(day):
             print(f'[{display_time}] {RED}Market Closed: Weekend{RESET}')
-        elif time_range(current_time):
+            return "Closed"
+        elif MarketStatus.time_range(current_time):
             print(f'[{display_time}] {YELLOW}Market Closed{RESET}')
+            return "Closed"
         else:
             print(f'[{display_time}] {GREEN}Market Open{RESET}')
-            #Start storing data
+            return "Open"
 
         # Sleep to prevent excessive CPU usage
-        time.sleep(next_minute())  # Check every minute
-
-if __name__ == "__main__":
-    main()
+        #time.sleep(next_minute())  # Check every minute
 
 
 import concurrent.futures
 import os
 
+
 # Function to process each ticker
 def process_ticker(ticker):
     ticker_str = ticker.decode('utf-8')
-    print(ticker_str)
+    #print(ticker_str)
     # Uncomment the next line if you need to write the ticker
-    if main() == "Open":
+    if MarketStatus.check() == "Open":
         write_ticker(ticker_str)
         #buildarray(ticker_str)
+    else:
+        print(f'{ticker_str} Market Closed')
 
 def main():
     tickers = r.keys('*')
@@ -360,4 +368,8 @@ def main():
         executor.map(process_ticker, tickers)
 
 if __name__ == "__main__":
-    main()
+    while True:
+        if MarketStatus.check() == "Open":
+            main()
+        else:
+            time.sleep(MarketStatus.next_minute())
