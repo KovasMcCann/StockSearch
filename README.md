@@ -14,8 +14,6 @@
 ### Resources
 
 - For SEC form guide: [Link](sec.md)
-- [Black Scholes Model](https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_model)
-- [Apply](https://github.com/DL-Software/jobs/blob/main/finance.md)
 
 ### Books to read
 
