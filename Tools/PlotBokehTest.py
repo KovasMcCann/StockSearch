@@ -1,115 +1,70 @@
+from bokeh.plotting import figure, show, output_file, ColumnDataSource
+from bokeh.models import HoverTool
+from bokeh.layouts import column
+from bokeh.io import curdoc
 import pandas as pd
 import pickle
 import redis
-from bokeh.plotting import figure, show, curdoc
-from bokeh.models import ColumnDataSource, HoverTool, TextInput, Div
-from bokeh.layouts import column, row
-from bokeh.events import KeyPress
 
-# Redis Config
-redis_host = '10.1.10.121'  # Replace with '127.0.0.1' if necessary
+# Redis connection details
+redis_host = '10.1.10.121'
 redis_port = 6379
-redis_db = 2  # default database
-redis_password = None  # no password set
+redis_db = 0
+redis_password = None
+
 r = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
 
-# Function to plot the data
-def plot(data):
-    if data is None:
-        print("No data to plot.")
-        return None
-
-    df = pd.DataFrame(data)
-
-    # Convert 'index' to datetime and 'row' to the actual values
-    df['row'] = df['row'].astype(str)
-    df['Open'] = df['row'].str.extract(r'Open\s+([0-9\.e+-]+)')[0].astype(float)
-
-    # Filter to keep only 'Open' values
-    df = df[['index', 'Open']]
-    df.set_index('index', inplace=True)
-
-    # Prepare Bokeh data source
-    source = ColumnDataSource(df.reset_index())
-
-    # Create a Bokeh plot
-    p = figure(x_axis_type='datetime', title='Open Prices Over Time', width=800, height=400, tools="pan,wheel_zoom,box_zoom,reset")
-    p.line(x='index', y='Open', source=source, line_width=2, color='blue', legend_label='Open Price')
-    p.circle(x='index', y='Open', source=source, size=8, color='blue', legend_label='Open Price')
-
-    # Add hover tool
-    hover = HoverTool()
-    hover.tooltips = [("Date", "@index{%F}"), ("Open Price", "@Open")]
-    hover.formatters = {'@index': 'datetime'}
-    p.add_tools(hover)
-
-    # Dark theme
-    p.title.text_font_size = '16pt'
-    p.xaxis.axis_label = 'Date'
-    p.yaxis.axis_label = 'Open Price'
-    p.xaxis.major_label_orientation = 'vertical'
-    p.grid.grid_line_alpha = 0.3
-    p.background_fill_color = '#2F2F2F'
-    p.border_fill_color = '#2F2F2F'
-    p.axis.axis_line_color = 'white'
-    p.axis.major_label_color = 'white'
-    p.grid.grid_line_color = '#555555'
-
-    return p
-
-# Function to load data
-def load(ticker):
+def load_data(ticker):
     data = r.hget(f'{ticker}', 'Data')
     if data:
         try:
             # Deserialize DataFrame from binary data
             data = pickle.loads(data)
         except (pickle.UnpicklingError, TypeError) as e:
-            # Handle errors and log them
             print(f"Error during unpickling: {e}")
             data = None
-    return data
+        return data
 
-# Function to fetch tickers from Redis
-def fetch_tickers():
-    tickers = r.keys('Data')  # Retrieve all keys with the prefix 'Data'
-    tickers = [ticker.decode('utf-8') for ticker in tickers]  # Decode byte keys to strings
-    return tickers
+def plot(data):
+    df = pd.DataFrame(data)
+    print(df.head())  # Debugging: Print the DataFrame to inspect its structure
 
-# Filter tickers based on input
-def filter_tickers(search_text):
-    tickers = fetch_tickers()
-    filtered = [ticker for ticker in tickers if search_text.lower() in ticker.lower()]
-    return filtered
+    if 'row' in df.columns:
+        df['row'] = df['row'].astype(str)
+        df['Open'] = df['row'].str.extract(r'Open\s+([0-9\.e+-]+)')[0].astype(float)
+        df = df[['index', 'Open']]
+        df.set_index('index', inplace=True)
 
-# Update ticker list based on search input
-def update_ticker_list(attr, old, new):
-    search_text = text_input.value
-    filtered_tickers = filter_tickers(search_text)
-    ticker_list_div.text = "<br>".join(filtered_tickers) if filtered_tickers else "No matches found."
+        source = ColumnDataSource(data={'x': df.index, 'y': df['Open']})
 
-# Initialize components
-text_input = TextInput(title="Search Ticker:", value="")
-text_input.on_change('value', update_ticker_list)
+        p = figure(title="Simple Scatter Plot", x_axis_label='Date', y_axis_label='Open Price', x_axis_type='datetime')
+        p.line(x='x', y='y', source=source, line_width=2, color='blue', legend_label='Open Price')
+        p.circle(x='x', y='y', source=source, size=8, color='blue', legend_label='Open Price')
 
-ticker_list_div = Div(text="")
+        hover = HoverTool()
+        hover.tooltips = [("Date", "@x{%F}"), ("Open Price", "@y")]
+        hover.formatters = {'@x': 'datetime'}
+        p.add_tools(hover)
 
-# Initial plot
-initial_ticker = fetch_tickers()[0] if fetch_tickers() else None
-initial_data = load(initial_ticker) if initial_ticker else None
-initial_plot = plot(initial_data)
+        p.title.text_font_size = '16pt'
+        p.xaxis.major_label_orientation = 'vertical'
+        p.grid.grid_line_alpha = 0.3
 
-# Callback for ticker selection
-def ticker_selected(event):
-    ticker = event.item
-    data = load(ticker)
-    new_plot = plot(data)
-    if new_plot:
-        layout.children[1] = new_plot
+        # Add plot to the current document
+        curdoc().add_root(column(p))
+    else:
+        print("Error: 'row' column not found in the DataFrame")
 
-# Create a dummy div to show a placeholder ticker for selection (in a real implementation, use a more interactive widget)
-ticker_list_div.on_click(ticker_selected)
+def main():
+    ticker = 'aapl'  # Example ticker symbol
+    if ticker:
+        data = load_data(ticker)
+        if data is not None:
+            plot(data)
+        else:
+            print("No data found for the ticker symbol.")
+    else:
+        print("No ticker symbol entered.")
 
-# Layout and add to document
-layout = column(text_input, ticker_list_div, initial_plot)
-curdoc().add_root(layout)
+# Run the main function
+main()

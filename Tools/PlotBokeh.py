@@ -48,7 +48,7 @@ def plot(data):
     p.grid.grid_line_alpha = 0.3
 
     # Show plot in a browser
-    output_file('plot.html')
+    #output_file('plot.html')
     show(p)
 
 def load(ticker):
@@ -70,6 +70,11 @@ def main():
         plot(data)
     else:
         print("No ticker symbol entered.")
+
+def main():
+    ticker = 'aapl'
+    data = load(ticker)
+    plot(data)
 
 if __name__ == "__main__":
     main()
