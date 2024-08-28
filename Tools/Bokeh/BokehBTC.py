@@ -4,6 +4,8 @@ from bokeh.io import curdoc
 import requests
 from datetime import datetime
 
+curdoc().theme = 'dark_minimal'
+
 # Create a ColumnDataSource with initial empty data
 data_source = ColumnDataSource(data={"Close": [], "DateTime": []})
 

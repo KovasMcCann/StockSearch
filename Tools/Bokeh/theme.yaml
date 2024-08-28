@@ -1,0 +1,18 @@
+attrs:
+  Figure:
+    background_fill_color: "#0f0f0f"  # Dark background
+    border_fill_color: "#1a1a1a"
+    outline_line_color: "#00ff00"  # Green outline
+  Axis:
+    major_label_text_color: "#00ff00"  # Green labels
+    major_label_text_font_size: "12pt"
+    axis_line_color: "#00ff00"  # Green axis lines
+    major_tick_line_color: "#00ff00"
+    minor_tick_line_color: "#00ff00"
+  Grid:
+    grid_line_dash: [6, 6]
+    grid_line_alpha: 0.3
+    grid_line_color: "#ff00ff"  # Purple grid lines
+  Title:
+    text_font_size: "16pt"
+    text_color: "#00ff00"  # Green title text

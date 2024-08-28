@@ -1,0 +1,129 @@
+/* Global Styles */
+body {
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    color: #00ff00; /* Bright green text */
+    background-color: #000000; /* Black background */
+}
+
+h1, h2 {
+    margin: 0;
+    color: #00ff00; /* Bright green text */
+}
+
+a {
+    color: #00ff00; /* Bright green text */
+    text-decoration: none; /* Remove underline */
+}
+
+a:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+/* Header Styles */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #111; /* Darker background for the header */
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Stronger shadow effect */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px; /* Set a max width if needed */
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.header .left {
+    flex: 1;
+    text-align: left;
+}
+
+.header .search-bar-container {
+    flex: 2;
+    display: flex;
+    justify-content: center; /* Center the search bar */
+}
+
+.search-bar {
+    width: 300px; /* Adjust width as needed */
+    padding: 10px;
+    font-size: 16px;
+    color: #00ff00; /* Bright green text */
+    background-color: #222; /* Dark background for the search bar */
+    border: 1px solid #00ff00; /* Bright green border */
+    border-radius: 5px; /* Rounded corners */
+    box-sizing: border-box;
+}
+
+/* Content Styles */
+.content {
+    padding-top: 60px; /* Ensure content isn't hidden behind fixed header */
+    text-align: center;
+}
+
+.content hr {
+    border: 1px solid #00ff00; /* Bright green horizontal rule */
+    width: 80%; /* Adjust as needed */
+    margin: 20px auto; /* Center and add vertical spacing */
+}
+
+.bk-logo {
+    display: none !important;
+}
+
+h2 {
+    color: #00ff00; /* Bright green text */
+}
+
+/* Terminal-like Styling for Textareas or Code Blocks (if needed) */
+pre, code {
+    font-family: 'Courier New', Courier, monospace;
+    color: #00ff00;
+    background-color: #111;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto; /* Enable horizontal scrolling for long lines */
+}
+
+.draggable-window {
+    position: absolute;
+    width: 300px;
+    background-color: #111; /* Dark background for the window */
+    border: 1px solid #00ff00; /* Bright green border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    color: #00ff00; /* Bright green text */
+    border-radius: 5px;
+}
+
+
+.draggable-window {
+    position: absolute;
+    width: 300px;
+    background-color: #111; /* Dark background for the window */
+    border: 1px solid #00ff00; /* Bright green border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    color: #00ff00; /* Bright green text */
+    border-radius: 5px;
+    cursor: move; /* Indicate that this section is draggable */
+}
+
+#window1 {
+    top: 50px;
+    left: 50px;
+}
+
+#window2 {
+    top: 150px;
+    left: 200px;
+}
