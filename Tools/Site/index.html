@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resizable Draggable Window</title>
+    <title>Resizable Draggable Windows</title>
     <style>
         /* Global Styles */
         body {
@@ -45,12 +45,11 @@
             border: 1px solid #333;
             background-color: #222; /* Dark background for draggable window */
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            left: 50px; /* Start position from the left */
-            top: 50px; /* Start position from the top */
             display: flex;
             flex-direction: column;
             resize: both; /* Allow resizing */
             overflow: hidden; /* Hide overflow */
+            z-index: 100; /* Ensure draggable windows stack properly */
         }
 
         .draggable .header {
@@ -75,52 +74,81 @@
             height: 100%;
             border: none;
         }
+
+        #new-window-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <div class="search-bar-container">
         <input type="text" class="search-bar" placeholder="Search...">
     </div>
-    <div class="draggable">
-        <div class="header">
-            <div class="title">Live Price 🔴</div>
-            <button id="close-button">X</button>
-        </div>
-        <div class="content">
-            <iframe src="http://localhost:5006/BokehBTC" style="border:none;" allowfullscreen></iframe>
-        </div>
-    </div>
+
+    <button id="new-window-btn">New Window</button>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const draggableWindow = document.querySelector('.draggable');
-            const header = draggableWindow.querySelector('.header');
-            const closeButton = document.getElementById('close-button');
+            const newWindowButton = document.getElementById('new-window-btn');
 
-            let isDragging = false;
-            let offsetX, offsetY;
+            newWindowButton.addEventListener('click', createDraggableWindow);
 
-            header.addEventListener('mousedown', (e) => {
-                if (e.target !== closeButton) {
-                    isDragging = true;
-                    offsetX = e.clientX - draggableWindow.getBoundingClientRect().left;
-                    offsetY = e.clientY - draggableWindow.getBoundingClientRect().top;
-                }
-            });
+            function createDraggableWindow() {
+                const draggableWindow = document.createElement('div');
+                draggableWindow.classList.add('draggable');
+                draggableWindow.style.left = `${Math.random() * (window.innerWidth - 800)}px`;
+                draggableWindow.style.top = `${Math.random() * (window.innerHeight - 600)}px`;
 
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    draggableWindow.style.left = `${e.clientX - offsetX}px`;
-                    draggableWindow.style.top = `${e.clientY - offsetY}px`;
-                }
-            });
+                draggableWindow.innerHTML = `
+                    <div class="header">
+                        <div class="title">Live Price 🔴</div>
+                        <button class="close-button">X</button>
+                    </div>
+                    <div class="content">
+                        <iframe src="http://localhost:5006/BokehBTC" style="border:none;" allowfullscreen></iframe>
+                    </div>
+                `;
 
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
+                document.body.appendChild(draggableWindow);
 
-            closeButton.addEventListener('click', () => {
-                draggableWindow.style.display = 'none';
-            });
+                const header = draggableWindow.querySelector('.header');
+                const closeButton = draggableWindow.querySelector('.close-button');
+                let isDragging = false;
+                let offsetX, offsetY;
+
+                header.addEventListener('mousedown', (e) => {
+                    if (e.target !== closeButton) {
+                        isDragging = true;
+                        offsetX = e.clientX - draggableWindow.getBoundingClientRect().left;
+                        offsetY = e.clientY - draggableWindow.getBoundingClientRect().top;
+                    }
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        draggableWindow.style.left = `${e.clientX - offsetX}px`;
+                        draggableWindow.style.top = `${e.clientY - offsetY}px`;
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                closeButton.addEventListener('click', () => {
+                    draggableWindow.remove();
+                });
+            }
         });
     </script>
 </body>
