@@ -1,4 +1,4 @@
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, Select
 from bokeh.plotting import figure
 from bokeh.io import curdoc
 import requests
@@ -15,7 +15,7 @@ fig = figure(
     width=950,  # Use 'width' instead of 'plot_width'
     height=450,  # Use 'height' instead of 'plot_height'
     tooltips=[("Close", "@Close")], 
-    title="Bitcoin Close Price Live (Every Second)"
+    title="Stock Close Price Live (Every Second)"
 )
 
 # Add a line renderer with the data source
@@ -31,18 +31,27 @@ fig.line(
 fig.xaxis.axis_label = "Date"
 fig.yaxis.axis_label = "Price ($)"
 
+# Get the stock symbol from the query parameters, default to 'msft' if not provided
+args = curdoc().session_context.request.arguments
+initial_ticker = args.get('symbol', [b'msft'])[0].decode('utf-8')
+
+#ticker_select = Select(title="Select Ticker:", value=initial_ticker, options=["msft", "aapl", "goog", "amzn"])
+
+
 # Define the callback function to update the chart
 def update_chart():
     global data_source
     try:
-        # Fetch the latest Bitcoin price
-        resp = requests.get("https://generic709.herokuapp.com/stockc/msft")
+        # Fetch the latest stock price based on the selected ticker
+        #selected_ticker = ticker_select.value
+        resp = requests.get(f"https://generic709.herokuapp.com/stockc/{initial_ticker}")
         resp.raise_for_status()  # Raise an exception for HTTP errors
         hist_data = resp.json()
         # Create new data row
+        print(hist_data)
         new_row = {
-            "Price": [hist_data["price"]],
-            "DateTime": [datetime.now()]
+            'Close': [hist_data["price"]],
+            'DateTime': [datetime.now()]
         }
         # Update the data source with new data
         data_source.stream(new_row, rollover=200)  # Limit the number of points to 200
@@ -52,5 +61,6 @@ def update_chart():
 # Add a periodic callback to update the chart every second
 curdoc().add_periodic_callback(update_chart, 1000)
 
-# Add the figure to the current document
+# Add the figure and the Select widget to the current document
 curdoc().add_root(fig)
+#curdoc().add_root(ticker_select)

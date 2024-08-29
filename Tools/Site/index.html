@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resizable Draggable Window</title>
+    <title>Resizable Draggable Windows</title>
     <style>
         /* Global Styles */
         body {
@@ -26,6 +26,7 @@
             justify-content: center;
             border-radius: 15px;
             z-index: 1000; /* Ensure it stays on top of other content */
+            gap: 10px; /* Space between the search bar and buttons */
         }
 
         .search-bar {
@@ -38,15 +39,28 @@
             border-radius: 5px;
         }
 
+        .button {
+            padding: 10px 15px;
+            font-size: 16px;
+            color: #00ff00; /* Bright green text */
+            background-color: #333; /* Dark background for buttons */
+            border: 1px solid #00ff00; /* Bright green border */
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .button:hover {
+            background-color: #4CAF50; /* Green background on hover */
+        }
+
         .draggable {
             position: absolute;
-            width: 800px; /* Set to the width of the Bokeh plot */
-            height: 600px; /* Set to the height of the Bokeh plot */
+            width: 400px; /* Width of the draggable windows */
+            height: 300px; /* Height of the draggable windows */
             border: 1px solid #333;
             background-color: #222; /* Dark background for draggable window */
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            left: 50px; /* Start position from the left */
-            top: 50px; /* Start position from the top */
             display: flex;
             flex-direction: column;
             resize: both; /* Allow resizing */
@@ -67,7 +81,9 @@
         .draggable .content {
             flex-grow: 1;
             padding: 0;
-            height: calc(100% - 40px); /* Adjust height to account for header */
+            overflow: hidden; /* Hide any content overflow */
+            display: flex;
+            align-items: stretch; /* Stretch children to fill the available space */
         }
 
         iframe {
@@ -80,48 +96,139 @@
 <body>
     <div class="search-bar-container">
         <input type="text" class="search-bar" placeholder="Search...">
+        <button id="restore-button" class="button">Restore All</button>
     </div>
-    <div class="draggable">
+
+    <div class="draggable" style="left: 50px; top: 50px;">
         <div class="header">
-            <div class="title">BTC price</div>
-            <button id="close-button">X</button>
+            <div class="title">Live Price 🔴</div>
+            <button class="close-button" id="close-button-1">X</button>
         </div>
         <div class="content">
-            <iframe src="http://localhost:5006/BokehBTC" style="border:none;" allowfullscreen></iframe>
+            <iframe id="bokeh-iframe-1" src="http://localhost:5006/BokehBTC" allowfullscreen></iframe>
         </div>
     </div>
+
+    <div class="draggable" style="left: 500px; top: 50px;">
+        <div class="header">
+            <div class="title">Hello World</div>
+            <button class="close-button" id="close-button-2">X</button>
+        </div>
+        <div class="content">
+            <H1>
+                <center>
+                    <font color="white">Hello World</font>
+                </center>
+            </H1>
+        </div>
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const draggableWindow = document.querySelector('.draggable');
-            const header = draggableWindow.querySelector('.header');
-            const closeButton = document.getElementById('close-button');
+document.addEventListener('DOMContentLoaded', () => {
+    const draggableWindows = document.querySelectorAll('.draggable');
+    const searchBar = document.querySelector('.search-bar');
+    const restoreButton = document.getElementById('restore-button');
 
-            let isDragging = false;
-            let offsetX, offsetY;
+    draggableWindows.forEach(draggableWindow => {
+        const header = draggableWindow.querySelector('.header');
+        const closeButton = header.querySelector('.close-button');
+        const iframe = draggableWindow.querySelector('iframe');
+        const content = draggableWindow.querySelector('.content');
 
-            header.addEventListener('mousedown', (e) => {
-                if (e.target !== closeButton) {
-                    isDragging = true;
-                    offsetX = e.clientX - draggableWindow.getBoundingClientRect().left;
-                    offsetY = e.clientY - draggableWindow.getBoundingClientRect().top;
-                }
-            });
+        let isDragging = false;
+        let offsetX, offsetY;
 
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    draggableWindow.style.left = `${e.clientX - offsetX}px`;
-                    draggableWindow.style.top = `${e.clientY - offsetY}px`;
-                }
-            });
-
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-
-            closeButton.addEventListener('click', () => {
-                draggableWindow.style.display = 'none';
-            });
+        header.addEventListener('mousedown', (e) => {
+            if (e.target !== closeButton) {
+                isDragging = true;
+                offsetX = e.clientX - draggableWindow.getBoundingClientRect().left;
+                offsetY = e.clientY - draggableWindow.getBoundingClientRect().top;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            }
         });
+
+        function onMouseMove(e) {
+            if (isDragging) {
+                let newLeft = e.clientX - offsetX;
+                let newTop = e.clientY - offsetY;
+
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                const windowWidth = draggableWindow.offsetWidth;
+                const windowHeight = draggableWindow.offsetHeight;
+
+                const searchBarRect = document.querySelector('.search-bar-container').getBoundingClientRect();
+                const searchBarHeight = searchBarRect.height;
+
+                // Constrain the window within the viewport and below the search bar
+                if (newLeft < 0) {
+                    newLeft = 0;
+                } else if (newLeft + windowWidth > viewportWidth) {
+                    newLeft = viewportWidth - windowWidth;
+                }
+
+                if (newTop < searchBarHeight) {
+                    newTop = searchBarHeight;
+                } else if (newTop + windowHeight > viewportHeight) {
+                    newTop = viewportHeight - windowHeight;
+                }
+
+                draggableWindow.style.left = `${newLeft}px`;
+                draggableWindow.style.top = `${newTop}px`;
+            }
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        closeButton.addEventListener('click', () => {
+            draggableWindow.style.display = 'none';
+        });
+
+        function adjustIframeSize() {
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+        }
+
+        // Adjust iframe size initially
+        adjustIframeSize();
+
+        // Adjust iframe size when the content area is resized
+        const observer = new ResizeObserver(() => {
+            adjustIframeSize();
+        });
+
+        observer.observe(content);
+    });
+
+    restoreButton.addEventListener('click', () => {
+        draggableWindows.forEach(draggableWindow => {
+            draggableWindow.style.display = 'flex';
+            const iframe = draggableWindow.querySelector('iframe');
+            if (iframe) {
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+            }
+        });
+    });
+
+    searchBar.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const symbol = searchBar.value.trim();
+            if (symbol) {
+                document.querySelectorAll('iframe').forEach(iframe => {
+                    iframe.src = `http://localhost:5006/Stock?symbol=${symbol}`;
+                });
+            }
+        }
+    });
+});
     </script>
 </body>
 </html>
+
