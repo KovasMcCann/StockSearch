@@ -111,15 +111,11 @@
 
     <div class="draggable" style="left: 500px; top: 50px;">
         <div class="header">
-            <div class="title">Hello World</div>
-            <button class="close-button" id="close-button-2">X</button>
+            <div class="title">BTC price</div>
+            <button id="close-button">X</button>
         </div>
         <div class="content">
-            <H1>
-                <center>
-                    <font color="white">Hello World</font>
-                </center>
-            </H1>
+            <iframe src="http://localhost:5006/BokehBTC" style="border:none;" allowfullscreen></iframe>
         </div>
     </div>
 
@@ -148,25 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        function onMouseMove(e) {
-            if (isDragging) {
-                let newLeft = e.clientX - offsetX;
-                let newTop = e.clientY - offsetY;
-
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-
-                const windowWidth = draggableWindow.offsetWidth;
-                const windowHeight = draggableWindow.offsetHeight;
-
-                const searchBarRect = document.querySelector('.search-bar-container').getBoundingClientRect();
-                const searchBarHeight = searchBarRect.height;
-
-                // Constrain the window within the viewport and below the search bar
-                if (newLeft < 0) {
-                    newLeft = 0;
-                } else if (newLeft + windowWidth > viewportWidth) {
-                    newLeft = viewportWidth - windowWidth;
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    draggableWindow.style.left = `${e.clientX - offsetX}px`;
+                    draggableWindow.style.top = `${e.clientY - offsetY}px`;
                 }
 
                 if (newTop < searchBarHeight) {
