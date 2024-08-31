@@ -111,105 +111,190 @@
 
     <div class="draggable" style="left: 500px; top: 50px;">
         <div class="header">
-            <div class="title">BTC price</div>
-            <button id="close-button">X</button>
+            <div class="title">News Feed</div>
+            <button class="close-button" id="close-button-2">X</button>
         </div>
         <div class="content">
-            <iframe src="http://localhost:5006/BokehBTC" style="border:none;" allowfullscreen></iframe>
+            <iframe id="news-frame" srcdoc="" allowfullscreen></iframe>
         </div>
     </div>
 
     <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const draggableWindows = document.querySelectorAll('.draggable');
-    const searchBar = document.querySelector('.search-bar');
-    const restoreButton = document.getElementById('restore-button');
+        // Replace with your News API key
+        const apiKey = '24ed1aa806b9410f8341b691c02f1d49';
+        // Replace with the specific ticker you want to query
+        const ticker = 'AAPL'; 
+const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+const apiUrl = `https://newsapi.org/v2/everything?q=${ticker}&apiKey=${apiKey}`;
 
-    draggableWindows.forEach(draggableWindow => {
-        const header = draggableWindow.querySelector('.header');
-        const closeButton = header.querySelector('.close-button');
-        const iframe = draggableWindow.querySelector('iframe');
-        const content = draggableWindow.querySelector('.content');
+function fetchNews() {
+    fetch(corsProxy + apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            const articles = data.articles;
+            let html = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Live News</title>
+                    <style>
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        table, th, td {
+                            border: 1px solid black;
+                        }
+                        th, td {
+                            padding: 10px;
+                            text-align: left;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>News for ${ticker}</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Headline</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
 
-        let isDragging = false;
-        let offsetX, offsetY;
+            articles.forEach(article => {
+                html += `
+                    <tr>
+                        <td>${new Date(article.publishedAt).toLocaleString()}</td>
+                        <td>${article.title}</td>
+                        <td><a href="${article.url}" target="_blank">Read more</a></td>
+                    </tr>`;
+            });
 
-        header.addEventListener('mousedown', (e) => {
-            if (e.target !== closeButton) {
-                isDragging = true;
-                offsetX = e.clientX - draggableWindow.getBoundingClientRect().left;
-                offsetY = e.clientY - draggableWindow.getBoundingClientRect().top;
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            }
-        });
+            html += `
+                        </tbody>
+                    </table>
+                </body>
+                </html>`;
 
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    draggableWindow.style.left = `${e.clientX - offsetX}px`;
-                    draggableWindow.style.top = `${e.clientY - offsetY}px`;
-                }
+            document.getElementById('news-frame').srcdoc = html;
+        })
+        .catch(error => console.error('Error fetching news:', error));
+}
 
-                if (newTop < searchBarHeight) {
-                    newTop = searchBarHeight;
-                } else if (newTop + windowHeight > viewportHeight) {
-                    newTop = viewportHeight - windowHeight;
-                }
+// Fetch news when the page loads
+window.onload = fetchNews;
 
-                draggableWindow.style.left = `${newLeft}px`;
-                draggableWindow.style.top = `${newTop}px`;
-            }
-        }
+    </script>
 
-        function onMouseUp() {
-            isDragging = false;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const draggableWindows = document.querySelectorAll('.draggable');
+        const searchBar = document.querySelector('.search-bar');
+        const restoreButton = document.getElementById('restore-button');
 
-        closeButton.addEventListener('click', () => {
-            draggableWindow.style.display = 'none';
-        });
-
-        function adjustIframeSize() {
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-        }
-
-        // Adjust iframe size initially
-        adjustIframeSize();
-
-        // Adjust iframe size when the content area is resized
-        const observer = new ResizeObserver(() => {
-            adjustIframeSize();
-        });
-
-        observer.observe(content);
-    });
-
-    restoreButton.addEventListener('click', () => {
         draggableWindows.forEach(draggableWindow => {
-            draggableWindow.style.display = 'flex';
+            const header = draggableWindow.querySelector('.header');
+            const closeButton = header.querySelector('.close-button');
             const iframe = draggableWindow.querySelector('iframe');
-            if (iframe) {
+            const content = draggableWindow.querySelector('.content');
+
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            header.addEventListener('mousedown', (e) => {
+                if (e.target !== closeButton) {
+                    isDragging = true;
+                    offsetX = e.clientX - draggableWindow.getBoundingClientRect().left;
+                    offsetY = e.clientY - draggableWindow.getBoundingClientRect().top;
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                }
+            });
+
+            function onMouseMove(e) {
+                if (isDragging) {
+                    let newLeft = e.clientX - offsetX;
+                    let newTop = e.clientY - offsetY;
+
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+
+                    const windowWidth = draggableWindow.offsetWidth;
+                    const windowHeight = draggableWindow.offsetHeight;
+
+                    const searchBarRect = document.querySelector('.search-bar-container').getBoundingClientRect();
+                    const searchBarHeight = searchBarRect.height;
+
+                    // Constrain the window within the viewport and below the search bar
+                    if (newLeft < 0) {
+                        newLeft = 0;
+                    } else if (newLeft + windowWidth > viewportWidth) {
+                        newLeft = viewportWidth - windowWidth;
+                    }
+
+                    if (newTop < searchBarHeight) {
+                        newTop = searchBarHeight;
+                    } else if (newTop + windowHeight > viewportHeight) {
+                        newTop = viewportHeight - windowHeight;
+                    }
+
+                    draggableWindow.style.left = `${newLeft}px`;
+                    draggableWindow.style.top = `${newTop}px`;
+                }
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            closeButton.addEventListener('click', () => {
+                draggableWindow.style.display = 'none';
+            });
+
+            function adjustIframeSize() {
                 iframe.style.width = '100%';
                 iframe.style.height = '100%';
             }
+
+            // Adjust iframe size initially
+            adjustIframeSize();
+
+            // Adjust iframe size when the content area is resized
+            const observer = new ResizeObserver(() => {
+                adjustIframeSize();
+            });
+
+            observer.observe(content);
+        });
+
+        restoreButton.addEventListener('click', () => {
+            draggableWindows.forEach(draggableWindow => {
+                draggableWindow.style.display = 'flex';
+                const iframe = draggableWindow.querySelector('iframe');
+                if (iframe) {
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                }
+            });
+        });
+
+        searchBar.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const symbol = searchBar.value.trim();
+                if (symbol) {
+                    document.querySelectorAll('iframe').forEach(iframe => {
+                        iframe.src = `http://localhost:5006/Stock?symbol=${symbol}`;
+                    });
+                }
+            }
         });
     });
-
-    searchBar.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const symbol = searchBar.value.trim();
-            if (symbol) {
-                document.querySelectorAll('iframe').forEach(iframe => {
-                    iframe.src = `http://localhost:5006/Stock?symbol=${symbol}`;
-                });
-            }
-        }
-    });
-});
     </script>
 </body>
 </html>
-

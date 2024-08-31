@@ -1,129 +1,59 @@
-/* Global Styles */
 body {
     margin: 0;
-    font-family: 'Courier New', Courier, monospace;
-    color: #00ff00; /* Bright green text */
-    background-color: #000000; /* Black background */
+    font-family: Arial, sans-serif;
 }
 
-h1, h2 {
-    margin: 0;
-    color: #00ff00; /* Bright green text */
-}
-
-a {
-    color: #00ff00; /* Bright green text */
-    text-decoration: none; /* Remove underline */
-}
-
-a:hover {
-    text-decoration: underline; /* Underline on hover */
-}
-
-/* Header Styles */
 .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #111; /* Darker background for the header */
+    background-color: #4CAF50; /* Green background for the header */
+    color: white;
     padding: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Stronger shadow effect */
-    z-index: 1000;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 1200px; /* Set a max width if needed */
-    padding: 0 20px;
-    box-sizing: border-box;
-}
-
-.header .left {
-    flex: 1;
-    text-align: left;
-}
-
-.header .search-bar-container {
-    flex: 2;
-    display: flex;
-    justify-content: center; /* Center the search bar */
+    border-bottom: 1px solid #333; /* Adds a border to separate from content */
 }
 
 .search-bar {
-    width: 300px; /* Adjust width as needed */
+    margin-left: 20px;
     padding: 10px;
     font-size: 16px;
-    color: #00ff00; /* Bright green text */
-    background-color: #222; /* Dark background for the search bar */
-    border: 1px solid #00ff00; /* Bright green border */
-    border-radius: 5px; /* Rounded corners */
-    box-sizing: border-box;
+    flex-grow: 1;
 }
 
-/* Content Styles */
-.content {
-    padding-top: 60px; /* Ensure content isn't hidden behind fixed header */
-    text-align: center;
+.draggable {
+    position: absolute;
+    width: 800px; /* Set to the width of the Bokeh plot */
+    height: 600px; /* Set to the height of the Bokeh plot */
+    border: 1px solid #333;
+    background-color: #222; /* Dark background for draggable window */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    left: 50px; /* Start position from the left */
+    top: 50px; /* Start position from the top */
+    display: flex;
+    flex-direction: column;
+    resize: both; /* Allow resizing */
+    overflow: hidden; /* Hide overflow */
 }
 
-.content hr {
-    border: 1px solid #00ff00; /* Bright green horizontal rule */
-    width: 80%; /* Adjust as needed */
-    margin: 20px auto; /* Center and add vertical spacing */
-}
-
-.bk-logo {
-    display: none !important;
-}
-
-h2 {
-    color: #00ff00; /* Bright green text */
-}
-
-/* Terminal-like Styling for Textareas or Code Blocks (if needed) */
-pre, code {
-    font-family: 'Courier New', Courier, monospace;
-    color: #00ff00;
-    background-color: #111;
+.draggable .header {
+    background-color: #4CAF50; /* Green background for the header */
+    color: white;
     padding: 10px;
-    border-radius: 5px;
-    overflow-x: auto; /* Enable horizontal scrolling for long lines */
+    cursor: move; /* Indicates draggable area */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333; /* Adds a border to separate from content */
 }
 
-.draggable-window {
-    position: absolute;
-    width: 300px;
-    background-color: #111; /* Dark background for the window */
-    border: 1px solid #00ff00; /* Bright green border */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    color: #00ff00; /* Bright green text */
-    border-radius: 5px;
+.draggable .content {
+    flex-grow: 1;
+    padding: 0;
+    height: calc(100% - 40px); /* Adjust height to account for header */
 }
 
-
-.draggable-window {
-    position: absolute;
-    width: 300px;
-    background-color: #111; /* Dark background for the window */
-    border: 1px solid #00ff00; /* Bright green border */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    color: #00ff00; /* Bright green text */
-    border-radius: 5px;
-    cursor: move; /* Indicate that this section is draggable */
-}
-
-#window1 {
-    top: 50px;
-    left: 50px;
-}
-
-#window2 {
-    top: 150px;
-    left: 200px;
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
 }
