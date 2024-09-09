@@ -1,5 +1,4 @@
 # StockSearch 📈
-
 ## Progress
 
 | July 8th | August 7th (Nearest Dollar) |
