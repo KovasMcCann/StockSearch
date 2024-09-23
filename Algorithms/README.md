@@ -1,7 +1,6 @@
-# AlGOs 
+# Algorithms
 
 ## [SimpleYahoo.py](SimpleYahoo.py)
-### Short Description of `SimpleYahoo.py`
 
 `SimpleYahoo.py` is a Python script that utilizes Yahoo Finance data to build a stock price predictor using PyTorch. The main objective is to create a proof-of-concept AI model that predicts stock prices based on historical data.
 
