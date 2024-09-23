@@ -14,9 +14,6 @@
 - sec forms from redis db
 - find ways to build an algo
 
-  <img src="https://images.squarespace-cdn.com/content/v1/66be144e1b5d082acf687a90/66b236d3-65b0-4044-b809-95aecc84668a/65c26c1f175170ebdbcc2622_Screen+Recording+2024-02-06+at+12.25.40%E2%80%AFPM+copy+%281%29.gif" alt="Godel Terminal"/>![image](https://github.com/user-attachments/assets/8e5db088-4345-4f16-938c-75a9a71892df)
-
-
 ### TODO 📋
 
 - **Add** alpaca paper trading interface [alpaca.markets](alpaca)
