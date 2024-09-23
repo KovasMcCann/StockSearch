@@ -6,13 +6,8 @@
 |----------|------------------------------------------|
 |![Screenshot from 2024-07-08 15-26-28](https://github.com/KovasMcCann/StockSearch/assets/44278533/81248cee-5382-4846-8611-f4c42c178c09) |![image](https://github.com/user-attachments/assets/c101e62d-f064-4c4b-a133-67f2f62e3585)|
 
-## Tool Progress
+## Terminal Link
 [https://html-preview.github.io/?url=https://github.com/KovasMcCann/StockSearch/blob/main/Tools/Site/index.html](https://html-preview.github.io/?url=https://github.com/KovasMcCann/StockSearch/blob/main/Tools/Site/index.html)
-- Find a better way to host
-  - react, npm 
-- Get News
-- sec forms from redis db
-- find ways to build an algo
 
 ### TODO 📋
 
