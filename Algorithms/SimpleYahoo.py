@@ -2,6 +2,7 @@
 # Name: SimpleYahoo.py                                     #
 # Description: simple yahoo and pytorch predictor          #
 # Idea: use yahoo finance to build an ai (proof of concept)#
+# Note: I dont think the GPU is enabled                    #
 ############################################################
 
 import torch
