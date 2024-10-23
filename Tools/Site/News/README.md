@@ -4,4 +4,5 @@ Will use a db and will query data quickly and iffeciently thorugh and custom bui
 
 ## Rescources
 [newscatcher](https://github.com/kotartemiy/newscatcher/tree/master)
+
 [Online DB Viewer](https://inloop.github.io/sqlite-viewer/)
