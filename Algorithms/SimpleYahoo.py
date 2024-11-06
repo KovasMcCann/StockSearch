@@ -5,6 +5,8 @@
 # Note: I dont think the GPU is enabled                    #
 ############################################################
 
+## IS there data overfitting with model
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
