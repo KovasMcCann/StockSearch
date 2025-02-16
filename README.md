@@ -26,8 +26,6 @@
 <!-- [image](github.com/4f4QdN2G~/p:g!UDYP)>] -->
 What is rennasance technologys
 
-
-
 Founded in 1982
 
 Registered with the SEC, NFA, and CFTC
