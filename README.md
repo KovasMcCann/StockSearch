@@ -14,6 +14,8 @@
 - **Add** alpaca paper trading interface [alpaca.markets](alpaca)
 - Implement [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag) and [alpaca.markets](https://alpaca.markets)
 
+temperature 
+
 ### Resources
 
 - For SEC form guide: [Link](sec.md)
