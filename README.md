@@ -16,7 +16,7 @@
 - Temperature Theory
 - Building a Compute Cluster
 
-### Resources
+### Resources 
 
 - For SEC form guide: [Link](sec.md)
 - Obsidian Notes: [Link](https://github.com/KovasMcCann/Obsidian)
