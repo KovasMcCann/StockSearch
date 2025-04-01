@@ -25,4 +25,3 @@
 6. **Form 6-K**:  
    - Filed by foreign private issuers with the SEC to provide updates required by their home country's securities regulations.
    - Typically includes information not covered in Forms 20-F or 40-F.
-
